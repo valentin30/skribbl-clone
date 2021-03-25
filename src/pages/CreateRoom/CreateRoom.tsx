@@ -1,22 +1,24 @@
+import { Button, Step, StepLabel, Stepper, Typography } from '@material-ui/core'
+import { Color } from '@material-ui/lab'
+import React, {
+    FunctionComponent,
+    useCallback,
+    useContext,
+    useState
+} from 'react'
+import { AddPlayers } from '../../components/CreateRoom/AddPlayers'
 import {
-    Button,
-    Chip,
-    FormControl,
-    FormControlLabel,
-    IconButton,
-    InputLabel,
-    MenuItem,
-    Select,
-    Step,
-    StepLabel,
-    Stepper,
-    Switch,
-    TextField
-} from '@material-ui/core'
-import { Add } from '@material-ui/icons'
-import React, { FunctionComponent, useCallback, useState } from 'react'
-import { generateRandomColor } from '../../utils/colors'
+    CustomDictionary,
+    Word
+} from '../../components/CreateRoom/CustomDictionary/CustomDictionary'
+import { RoomSettings } from '../../components/CreateRoom/RoomSettings'
 import styles from './CreateRoom.module.css'
+import { toast } from 'react-toastify'
+import { Avatar } from '../../components/UI/Avatar'
+import { getRandomColor } from '../../utils/colors'
+import { UserContext } from '../../context/User/UserContext'
+import { IUserContext } from '../../context/User/UserContextInterface'
+import { useHistory } from 'react-router'
 
 interface Props {}
 
@@ -25,17 +27,23 @@ interface SelectState {
     drawingTime: number | string
 }
 
-interface CustomDictionary {
-    active: boolean
-    dictionary: Word[]
-}
-
-interface Word {
+interface User {
+    name: string
     color: string
-    content: string
 }
 
 const labels: string[] = ['Room Settings', 'Add Players']
+
+const players: User[] = [
+    { color: getRandomColor(), name: 'Gosho' },
+    { color: getRandomColor(), name: 'Pesho' },
+    { color: getRandomColor(), name: 'Victor' },
+    { color: getRandomColor(), name: 'Bobo' },
+    { color: getRandomColor(), name: 'Gosho' },
+    { color: getRandomColor(), name: 'Victor' },
+    { color: getRandomColor(), name: 'Bobo' },
+    { color: getRandomColor(), name: 'Gosho' }
+]
 
 export const CreateRoom: FunctionComponent<Props> = props => {
     // Rounds and Drawing Time
@@ -44,25 +52,22 @@ export const CreateRoom: FunctionComponent<Props> = props => {
         drawingTime: ''
     })
 
-    const changeHandler = useCallback(
-        (
-            event: React.ChangeEvent<{
-                name?: string | undefined
-                value: unknown
-            }>,
-            _: React.ReactNode
-        ) => {
-            if (!event.target.name) {
-                return
-            }
+    //Custom Dictionary
 
-            setSelectState((values: SelectState) => ({
-                ...values,
-                [event.target.name as string]: event.target.value as number
-            }))
-        },
-        []
-    )
+    const [dictionary, setDictionary] = useState<Word[]>([])
+
+    const [active, setActive] = useState<boolean>(false)
+
+    const toggleDictionary = useCallback(() => {
+        setActive((active: boolean) => !active)
+    }, [])
+
+    // Room Link
+    const link: string = 'https://skribbl.io/?UFPVYJobi5iW'
+
+    // Players
+
+    const { color, name } = useContext<IUserContext>(UserContext)
 
     // Stepper
     const [activeStep, setActiveStep] = useState<number>(0)
@@ -77,85 +82,34 @@ export const CreateRoom: FunctionComponent<Props> = props => {
                 return 0
             }
 
+            if (active && dictionary.length < 3) {
+                return 0
+            }
+
             return 1
         })
-    }, [selectState])
+    }, [selectState, dictionary, active])
 
-    //Custom Dictionary
+    //Form Submit
 
-    const [word, setWord] = useState<string>('')
+    const history = useHistory()
 
-    const [customDictionary, setCustomDictionary] = useState<CustomDictionary>({
-        active: false,
-        dictionary: []
-    })
+    const submitHandler = useCallback(
+        (event: React.FormEvent) => {
+            event.preventDefault()
 
-    const toggleCustomDictionary = useCallback(() => {
-        setCustomDictionary(({ active, ...rest }: CustomDictionary) => {
-            return {
-                ...rest,
-                active: !active
+            if (!players.length) {
+                toast.error('Not enough players')
+                return
             }
-        })
-    }, [])
 
-    const wordChangeHandler = useCallback(
-        (event: React.ChangeEvent<HTMLInputElement>) => {
-            setWord(event.target.value)
+            history.push('/room')
         },
-        []
+        [history]
     )
-
-    const addWordHandler = useCallback(
-        (event: React.MouseEvent<HTMLButtonElement>) => {
-            setCustomDictionary(({ dictionary, ...rest }: CustomDictionary) => {
-                if (
-                    dictionary.some((value: Word) =>
-                        value.content.includes(word)
-                    )
-                ) {
-                    return {
-                        dictionary,
-                        ...rest
-                    }
-                }
-
-                if (dictionary.length === 15) {
-                    return {
-                        dictionary,
-                        ...rest
-                    }
-                }
-                setWord('')
-                return {
-                    ...rest,
-                    dictionary: [
-                        ...dictionary,
-                        { color: generateRandomColor(), content: word }
-                    ]
-                }
-            })
-        },
-        [word]
-    )
-
-    const removeWordHandler = useCallback((word: string) => {
-        setCustomDictionary(({ dictionary, ...rest }: CustomDictionary) => {
-            return {
-                ...rest,
-                dictionary: dictionary.filter(
-                    (value: Word) => value.content !== word
-                )
-            }
-        })
-    }, [])
 
     return (
-        <form
-            className={styles.root}
-            onSubmit={() => {
-                console.log('submit')
-            }}>
+        <form className={styles.root} onSubmit={submitHandler}>
             <Stepper activeStep={activeStep} alternativeLabel>
                 {labels.map((label: string) => (
                     <Step key={label}>
@@ -163,96 +117,67 @@ export const CreateRoom: FunctionComponent<Props> = props => {
                     </Step>
                 ))}
             </Stepper>
-            <FormControl variant='outlined' fullWidth>
-                <InputLabel id='rounds'>Rounds</InputLabel>
-                <Select
-                    labelId='rounds'
-                    id='rounds-select'
-                    label='Rounds'
-                    name='rounds'
-                    value={selectState.rounds}
-                    onChange={changeHandler}>
-                    {new Array(8).fill(0).map((_: number, index: number) => (
-                        <MenuItem key={index} value={index + 2}>
-                            {index + 2}
-                        </MenuItem>
-                    ))}
-                </Select>
-            </FormControl>
-            <FormControl className={styles.Input} variant='outlined' fullWidth>
-                <InputLabel id='timer'>Drawing Time</InputLabel>
-                <Select
-                    labelId='timer'
-                    id='timer-select'
-                    label='Drawing Time'
-                    name='drawingTime'
-                    value={selectState.drawingTime}
-                    onChange={changeHandler}>
-                    {new Array(8).fill(0).map((_: number, index: number) => (
-                        <MenuItem key={index} value={index * 30 + 30}>
-                            {index * 30 + 30}
-                        </MenuItem>
-                    ))}
-                </Select>
-            </FormControl>
-            <FormControlLabel
-                className={styles.Switch}
-                control={
-                    <Switch
-                        checked={customDictionary.active}
-                        onChange={toggleCustomDictionary}
-                        name='CustomDictionary'
-                        color='primary'
-                    />
-                }
-                label='Custom Dictionary'
-            />
-            {customDictionary.active && (
+            {activeStep ? (
                 <>
-                    <TextField
-                        id='outlined-basic'
-                        label='Word'
-                        variant='outlined'
-                        placeholder='Enter new word'
-                        value={word}
-                        onChange={wordChangeHandler}
-                        InputProps={{
-                            endAdornment: (
-                                <IconButton
-                                    className={styles.Add}
-                                    onClick={addWordHandler}
-                                    disabled={!word.trim()}>
-                                    <Add />
-                                </IconButton>
-                            )
-                        }}
-                        fullWidth
-                    />
-                    <div className={styles.Chips}>
-                        {customDictionary.dictionary.map((word: Word) => (
-                            <Chip
-                                className={styles.Chip}
-                                style={{
-                                    backgroundColor: word.color
-                                }}
-                                key={word.content + Date.now() * Math.random()}
-                                label={word.content}
-                                onDelete={() => {
-                                    removeWordHandler(word.content)
-                                }}
-                            />
+                    <div className={styles.Avatars}>
+                        <div className={styles.Avatar}>
+                            <Avatar name={name} color={color} />
+                            <Typography variant='body1'>{name}</Typography>
+                        </div>
+                        {players.map((player: User, index: number) => (
+                            <div key={index} className={styles.Avatar}>
+                                <Avatar
+                                    name={player.name}
+                                    color={player.color}
+                                />
+                                <Typography variant='body1'>
+                                    {player.name}
+                                </Typography>
+                            </div>
                         ))}
                     </div>
+                    <AddPlayers link={link} />
+                    <div className={styles.Buttons}>
+                        <Button
+                            variant='contained'
+                            color='primary'
+                            size='large'
+                            type='submit'
+                            fullWidth>
+                            Start Game
+                        </Button>
+                        <Button
+                            onClick={toggleSteps}
+                            color='primary'
+                            size='large'
+                            variant='outlined'
+                            fullWidth>
+                            Back
+                        </Button>
+                    </div>
+                </>
+            ) : (
+                <>
+                    <RoomSettings
+                        selectState={selectState}
+                        setSelectState={setSelectState}
+                    />
+                    <CustomDictionary
+                        active={active}
+                        toggleDictionary={toggleDictionary}
+                        dictionary={dictionary}
+                        setDictionary={setDictionary}
+                    />
+                    <Button
+                        onClick={toggleSteps}
+                        color='primary'
+                        variant='contained'
+                        size='large'
+                        fullWidth>
+                        Next
+                    </Button>
                 </>
             )}
-            <Button
-                onClick={toggleSteps}
-                color='primary'
-                variant='contained'
-                size='large'
-                fullWidth>
-                Next
-            </Button>
         </form>
     )
 }

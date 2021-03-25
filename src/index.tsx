@@ -6,6 +6,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { App } from './App'
 import { Layout } from './components/Layout'
 import { theme } from './config/theme'
+import { UserContextProvider } from './context/User/UserContextProvider'
 import './index.css'
 import reportWebVitals from './reportWebVitals'
 
@@ -13,9 +14,11 @@ ReactDOM.render(
     <React.StrictMode>
         <BrowserRouter>
             <ThemeProvider theme={theme}>
-                <Layout>
-                    <App />
-                </Layout>
+                <UserContextProvider>
+                    <Layout>
+                        <App />
+                    </Layout>
+                </UserContextProvider>
             </ThemeProvider>
         </BrowserRouter>
     </React.StrictMode>,

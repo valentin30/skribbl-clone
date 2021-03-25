@@ -1,30 +1,32 @@
-import {
-    Avatar,
-    Button,
-    Divider,
-    TextField,
-    Typography
-} from '@material-ui/core'
-import React, { FunctionComponent, useCallback, useState } from 'react'
+import { Button, Divider, TextField, Typography } from '@material-ui/core'
+import React, {
+    FunctionComponent,
+    useCallback,
+    useContext,
+    useState
+} from 'react'
 import { useHistory } from 'react-router'
 import { Link } from 'react-router-dom'
-import { getRandomColor } from '../../utils/colors'
+import { Avatar } from '../../components/UI/Avatar'
+import { UserContext } from '../../context/User/UserContext'
+import { IUserContext } from '../../context/User/UserContextInterface'
 import styles from './Home.module.css'
 
 interface Props {}
 
-const color: string = getRandomColor()
-
 export const Home: FunctionComponent<Props> = props => {
     const history = useHistory()
 
-    const [name, setName] = useState<string>('')
+    const { name, setName, color } = useContext<IUserContext>(UserContext)
+
+    const [error, setError] = useState<string>('')
 
     const submitHandler = useCallback(
         (event: React.FormEvent<HTMLFormElement>) => {
             event.preventDefault()
 
             if (!name) {
+                setError('Please enter your name.')
                 return
             }
 
@@ -36,21 +38,35 @@ export const Home: FunctionComponent<Props> = props => {
         [name, history]
     )
 
+    const createPrivateRoomHandler = useCallback(
+        (event: React.MouseEvent<HTMLButtonElement>) => {
+            if (!name) {
+                setError('Please enter your name.')
+                return
+            }
+
+            //TO DO:
+            //get room id from the server and add it to the url as query param
+
+            history.push('/create-room')
+        },
+        [name, history]
+    )
+
     const changeHandler = useCallback(
         (event: React.ChangeEvent<HTMLInputElement>) => {
             setName(event.target.value)
         },
-        []
+        [setName]
     )
+
+    const focusHandler = useCallback(() => {
+        setError('')
+    }, [])
 
     return (
         <form className={styles.root} onSubmit={submitHandler}>
-            <Avatar
-                alt='avatar'
-                className={styles.Avatar}
-                style={{ backgroundColor: color }}>
-                {name ? name.slice(0, 1).toUpperCase() : null}
-            </Avatar>
+            <Avatar name={name} color={color} className={styles.Avatar} />
             <TextField
                 id='outlined-basic'
                 label='Name'
@@ -59,6 +75,10 @@ export const Home: FunctionComponent<Props> = props => {
                 className={styles.Input}
                 value={name}
                 onChange={changeHandler}
+                onFocus={focusHandler}
+                style={{ marginBottom: error ? '0' : '0.75rem' }}
+                error={Boolean(error)}
+                helperText={error}
                 fullWidth
             />
             <Button
@@ -78,10 +98,9 @@ export const Home: FunctionComponent<Props> = props => {
                 <Divider />
             </Typography>
             <Button
+                onClick={createPrivateRoomHandler}
                 variant='outlined'
                 color='primary'
-                component={Link}
-                to='/create-room'
                 fullWidth>
                 Create private room
             </Button>
