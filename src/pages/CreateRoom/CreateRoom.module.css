@@ -1,0 +1,34 @@
+.root {
+    max-width: 450px;
+
+    width: 100%;
+    height: 100%;
+
+    margin: 0 auto;
+}
+
+.Input {
+    margin: 1.5rem 0 0 !important;
+}
+
+.Switch {
+    margin: 0.75rem 0;
+}
+
+.Add {
+    margin-right: -0.5rem !important;
+}
+
+.Chips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+
+    width: 120%;
+
+    margin: 0.75rem -10%;
+}
+
+.Chip {
+    margin: 0.1rem;
+}
