@@ -1,24 +1,25 @@
 import { Button, Step, StepLabel, Stepper, Typography } from '@material-ui/core'
-import { Color } from '@material-ui/lab'
 import React, {
     FunctionComponent,
     useCallback,
     useContext,
     useState
 } from 'react'
+import { useHistory } from 'react-router'
+import { toast } from 'react-toastify'
 import { AddPlayers } from '../../components/CreateRoom/AddPlayers'
 import {
     CustomDictionary,
     Word
 } from '../../components/CreateRoom/CustomDictionary/CustomDictionary'
 import { RoomSettings } from '../../components/CreateRoom/RoomSettings'
-import styles from './CreateRoom.module.css'
-import { toast } from 'react-toastify'
 import { Avatar } from '../../components/UI/Avatar'
-import { getRandomColor } from '../../utils/colors'
 import { UserContext } from '../../context/User/UserContext'
 import { IUserContext } from '../../context/User/UserContextInterface'
-import { useHistory } from 'react-router'
+import { createRoom } from '../../service/CreateRoom'
+import { RoomIdResponseDto } from '../../types/dto/RoomIdResponseDto'
+import { getRandomColor } from '../../utils/colors'
+import styles from './CreateRoom.module.css'
 
 interface Props {}
 
@@ -63,7 +64,8 @@ export const CreateRoom: FunctionComponent<Props> = props => {
     }, [])
 
     // Room Link
-    const link: string = 'https://skribbl.io/?UFPVYJobi5iW'
+
+    const [link, setLink] = useState<string>('')
 
     // Players
 
@@ -72,22 +74,23 @@ export const CreateRoom: FunctionComponent<Props> = props => {
     // Stepper
     const [activeStep, setActiveStep] = useState<number>(0)
 
-    const toggleSteps = useCallback(() => {
-        setActiveStep((step: number) => {
-            if (step === 1) {
-                return 0
-            }
+    const nextStepHandler = useCallback(async () => {
+        if (selectState.drawingTime === '' || selectState.rounds === '') {
+            return
+        }
 
-            if (selectState.drawingTime === '' || selectState.rounds === '') {
-                return 0
-            }
+        if (active && dictionary.length < 3) {
+            return
+        }
 
-            if (active && dictionary.length < 3) {
-                return 0
-            }
-
-            return 1
+        const { id }: RoomIdResponseDto = await createRoom({
+            rounds: selectState.rounds as number,
+            secondsPerRound: selectState.drawingTime as number
         })
+
+        setLink(`${window.origin}/room?id=${id}`)
+
+        setActiveStep(1)
     }, [selectState, dictionary, active])
 
     //Form Submit
@@ -137,24 +140,15 @@ export const CreateRoom: FunctionComponent<Props> = props => {
                         ))}
                     </div>
                     <AddPlayers link={link} />
-                    <div className={styles.Buttons}>
-                        <Button
-                            variant='contained'
-                            color='primary'
-                            size='large'
-                            type='submit'
-                            fullWidth>
-                            Start Game
-                        </Button>
-                        <Button
-                            onClick={toggleSteps}
-                            color='primary'
-                            size='large'
-                            variant='outlined'
-                            fullWidth>
-                            Back
-                        </Button>
-                    </div>
+                    <Button
+                        variant='contained'
+                        color='primary'
+                        size='large'
+                        type='submit'
+                        className={styles.Input}
+                        fullWidth>
+                        Start Game
+                    </Button>
                 </>
             ) : (
                 <>
@@ -169,7 +163,7 @@ export const CreateRoom: FunctionComponent<Props> = props => {
                         setDictionary={setDictionary}
                     />
                     <Button
-                        onClick={toggleSteps}
+                        onClick={nextStepHandler}
                         color='primary'
                         variant='contained'
                         size='large'

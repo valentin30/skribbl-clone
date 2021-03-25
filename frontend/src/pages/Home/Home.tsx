@@ -6,11 +6,13 @@ import React, {
     useState
 } from 'react'
 import { useHistory } from 'react-router'
-import { Link } from 'react-router-dom'
 import { Avatar } from '../../components/UI/Avatar'
 import { UserContext } from '../../context/User/UserContext'
 import { IUserContext } from '../../context/User/UserContextInterface'
 import styles from './Home.module.css'
+import { toast } from 'react-toastify'
+import { getRoomId } from '../../service/GetRoomId'
+import { RoomIdResponseDto } from '../../types/dto/RoomIdResponseDto'
 
 interface Props {}
 
@@ -22,7 +24,7 @@ export const Home: FunctionComponent<Props> = props => {
     const [error, setError] = useState<string>('')
 
     const submitHandler = useCallback(
-        (event: React.FormEvent<HTMLFormElement>) => {
+        async (event: React.FormEvent<HTMLFormElement>) => {
             event.preventDefault()
 
             if (!name) {
@@ -30,10 +32,13 @@ export const Home: FunctionComponent<Props> = props => {
                 return
             }
 
-            //TO DO:
-            //get room id from the server and add it to the url as query param
+            try {
+                const { id }: RoomIdResponseDto = await getRoomId()
 
-            history.push('/room')
+                history.push(`/room?id=${id}`)
+            } catch (error) {
+                toast.error(error.message)
+            }
         },
         [name, history]
     )
@@ -44,9 +49,6 @@ export const Home: FunctionComponent<Props> = props => {
                 setError('Please enter your name.')
                 return
             }
-
-            //TO DO:
-            //get room id from the server and add it to the url as query param
 
             history.push('/create-room')
         },
