@@ -1,12 +1,12 @@
 import { SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets'
-import { Server } from 'socket.io'
+import { Server, Socket } from 'socket.io'
 
-@WebSocketGateway({ origins: ['localhost:5000', 'localhost:3000'] })
+@WebSocketGateway()
 export class AppGateway {
     @WebSocketServer() server: Server
 
     @SubscribeMessage('msgServer')
-    handleMessage(client: any, payload: any): void {
+    handleMessage(client: Socket, payload: string): void {
         this.server.emit('msgClient', payload)
     }
 }

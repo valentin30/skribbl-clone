@@ -1,12 +1,13 @@
 import { NestFactory } from '@nestjs/core'
-import { AppModule } from './app.module'
 import { NestExpressApplication } from '@nestjs/platform-express'
-import { join } from 'path'
+import { SocketIoAdapter } from './adapters/socket-io.adapter'
+import { AppModule } from './app.module'
 
 async function bootstrap() {
     const app = await NestFactory.create<NestExpressApplication>(AppModule)
     app.enableCors()
-    app.useStaticAssets(join(__dirname, '..', 'static'))
+
+    app.useWebSocketAdapter(new SocketIoAdapter(app, ['http://localhost:3000']))
 
     await app.listen(4000)
 }

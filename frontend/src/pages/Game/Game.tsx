@@ -2,27 +2,25 @@ import { Button } from '@material-ui/core'
 import React, { FunctionComponent, useContext, useEffect, useRef } from 'react'
 import { UserContext } from '../../context/User/UserContext'
 import { IUserContext } from '../../context/User/UserContextInterface'
-import io from 'socket.io-client'
+import { io, Socket } from 'socket.io-client'
 
 interface Props {}
 
-const socket = io('ws://localhost:4000')
+// const socket = io('http://localhost:4000')
 
 export const Game: FunctionComponent<Props> = props => {
     const { name } = useContext<IUserContext>(UserContext)
 
-    const socketRef = useRef<SocketIOClient.Socket>()
+    const socketRef = useRef<Socket>()
 
     useEffect(() => {
-        // socketRef.current = io('http://localhost:4000')
-        socket.on('connect', () => {
-            console.log('conn')
-        })
-        socket.on('msgClient', (data: any) => {
+        socketRef.current = io('http://localhost:4000')
+        socketRef.current.onAny(console.log)
+        socketRef.current.on('msgClient', (data: any) => {
             console.log(data)
         })
 
-        socket.emit('msgServer', 'Valentin')
+        socketRef.current.emit('msgServer', 'Valentin')
 
         // return () => {
         //     socketRef.current?.disconnect()
@@ -36,9 +34,9 @@ export const Game: FunctionComponent<Props> = props => {
                 variant='contained'
                 color='primary'
                 onClick={async () => {
-                    console.log(socket)
+                    console.log(socketRef.current)
 
-                    socket.emit('msgServer', 'Valentin')
+                    socketRef.current?.emit('msgServer', 'Valentin')
                 }}>
                 Send
             </Button>
