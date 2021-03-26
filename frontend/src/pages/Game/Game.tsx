@@ -1,43 +1,33 @@
-import React, {
-    FunctionComponent,
-    useContext,
-    useEffect,
-    useMemo,
-    useState
-} from 'react'
-import styles from './Game.module.css'
-import SpringSocket from 'react-spring-websocket'
 import { Button } from '@material-ui/core'
-import { useLocation } from 'react-router'
+import React, { FunctionComponent, useContext, useEffect, useRef } from 'react'
 import { UserContext } from '../../context/User/UserContext'
 import { IUserContext } from '../../context/User/UserContextInterface'
+import io from 'socket.io-client'
 
 interface Props {}
 
+const socket = io('ws://localhost:4000')
+
 export const Game: FunctionComponent<Props> = props => {
-    const { search } = useLocation()
-
-    console.log(search)
-    const params: URLSearchParams = new URLSearchParams(search)
-
-    const id = params.get('id')
-
-    const socket = useMemo(() => {
-        return new SpringSocket(
-            'http://localhost:8080/ws',
-            [`/topic/${id}`],
-            m => {
-                console.log(m)
-                const data = JSON.parse(m.body)
-                console.log('hello')
-                console.log(data)
-            }
-        )
-    }, [id])
-
     const { name } = useContext<IUserContext>(UserContext)
 
-    useEffect(() => {}, [])
+    const socketRef = useRef<SocketIOClient.Socket>()
+
+    useEffect(() => {
+        // socketRef.current = io('http://localhost:4000')
+        socket.on('connect', () => {
+            console.log('conn')
+        })
+        socket.on('msgClient', (data: any) => {
+            console.log(data)
+        })
+
+        socket.emit('msgServer', 'Valentin')
+
+        // return () => {
+        //     socketRef.current?.disconnect()
+        // }
+    }, [])
 
     return (
         <>
@@ -46,22 +36,9 @@ export const Game: FunctionComponent<Props> = props => {
                 variant='contained'
                 color='primary'
                 onClick={async () => {
-                    const response = await fetch(
-                        'http://localhost:8080/room/register',
-                        {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                roomId: id,
-                                name,
-                                isPrivate: false
-                            })
-                        }
-                    )
+                    console.log(socket)
 
-                    console.log(response.status)
+                    socket.emit('msgServer', 'Valentin')
                 }}>
                 Send
             </Button>

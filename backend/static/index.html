@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <title>Document</title>
+    </head>
+    <body>
+        <div id="v-app">
+            <h1>{{title}}</h1>
+            <input v-model="text" type="text" />
+            <button @click="sendMessage">Send</button>
+            <ul>
+                <li v-for="msg of messages">{{msg}}</li>
+            </ul>
+        </div>
+
+        <script>
+            const app = new Vue({
+                el: '#v-app',
+                data: {
+                    title: 'WEB',
+                    text: '',
+                    messages: ['msg'],
+                    socket: null
+                },
+                methods: {
+                    sendMessage() {
+                        this.socket.emit('msgServer', this.text)
+                    }
+                },
+                created() {
+                    this.socket = io('http://localhost:4000')
+                    this.socket.on('msgClient', msg => {
+                        this.messages.push(msg)
+                    })
+                }
+            })
+        </script>
+    </body>
+</html>
