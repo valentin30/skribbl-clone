@@ -8,14 +8,24 @@ public class Room {
     private int rounds;
     private int secondsPerRound;
     private int capacity;
+    private boolean isPrivate;
     private ArrayList<Player> players = new ArrayList<Player>();
 
-    public Room(int rounds, int secondsPerRound) {
+    public Room(int rounds, int secondsPerRound, boolean isPrivate) {
         this.id = UUID.randomUUID();
         this.rounds = rounds;
         this.secondsPerRound = secondsPerRound;
         this.players = new ArrayList<Player>();
         this.capacity = 5;
+        this.isPrivate = isPrivate;
+    }
+
+    public boolean isPrivate() {
+        return isPrivate;
+    }
+
+    public void setPrivate(boolean aPrivate) {
+        isPrivate = aPrivate;
     }
 
     public UUID getId() {

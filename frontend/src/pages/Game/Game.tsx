@@ -1,8 +1,16 @@
-import React, { FunctionComponent, useEffect, useMemo, useState } from 'react'
+import React, {
+    FunctionComponent,
+    useContext,
+    useEffect,
+    useMemo,
+    useState
+} from 'react'
 import styles from './Game.module.css'
 import SpringSocket from 'react-spring-websocket'
 import { Button } from '@material-ui/core'
 import { useLocation } from 'react-router'
+import { UserContext } from '../../context/User/UserContext'
+import { IUserContext } from '../../context/User/UserContextInterface'
 
 interface Props {}
 
@@ -27,6 +35,8 @@ export const Game: FunctionComponent<Props> = props => {
         )
     }, [id])
 
+    const { name } = useContext<IUserContext>(UserContext)
+
     useEffect(() => {}, [])
 
     return (
@@ -35,17 +45,23 @@ export const Game: FunctionComponent<Props> = props => {
                 style={{ marginTop: '10rem' }}
                 variant='contained'
                 color='primary'
-                onClick={() => {
-                    socket.send('/app/register', {
-                        roomId: id,
-                        name: 'Valentin',
-                        isPrivate: false
-                    })
-                    socket.onMessage((m: any) => {
-                        const data = JSON.parse(m)
-                        console.log('hello')
-                        console.log(data)
-                    })
+                onClick={async () => {
+                    const response = await fetch(
+                        'http://localhost:8080/room/register',
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                roomId: id,
+                                name,
+                                isPrivate: false
+                            })
+                        }
+                    )
+
+                    console.log(response.status)
                 }}>
                 Send
             </Button>

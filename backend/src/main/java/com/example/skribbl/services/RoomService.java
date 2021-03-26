@@ -14,23 +14,22 @@ import java.util.UUID;
 
 @Service
 public class RoomService {
-    private ArrayList<Room> publicRooms;
-    private ArrayList<Room> privateRooms;
+    private ArrayList<Room> rooms;
 
     public RoomService() {
-        this.publicRooms = new ArrayList<Room>();
-        this.privateRooms = new ArrayList<Room>();
+        this.rooms = new ArrayList<Room>();
     }
 
     public UUID getAvailableRoom() {
-        Optional<Room> first = publicRooms.stream().filter((room) ->
-                room.getCapacity() > room.getPlayers().size()
-        ).findFirst();
+        Optional<Room> first = rooms.stream()
+                .filter((room) -> !room.isPrivate())
+                .filter((room) -> room.getCapacity() > room.getPlayers().size())
+                .findFirst();
 
         if (first.isEmpty()) {
-            Room room = new Room(3, 120);
+            Room room = new Room(3, 120, false);
 
-            publicRooms.add(room);
+            rooms.add(room);
 
             return room.getId();
         }
@@ -41,7 +40,7 @@ public class RoomService {
     }
 
     public UUID createRoom(CreateRoomDto createRoomDto) {
-        Room room = new Room(createRoomDto.getRounds(), createRoomDto.getSecondsPerRound());
+        Room room = new Room(createRoomDto.getRounds(), createRoomDto.getSecondsPerRound(), true);
 
         return room.getId();
     }
@@ -49,20 +48,20 @@ public class RoomService {
     public Room register(RegisterDto registerDto) {
         Player player = new Player(registerDto.getName());
 
-        Optional<Room> first =
-                registerDto.getPrivate() ?
-                privateRooms.stream().filter((entry) -> entry.getId().toString().equals(registerDto.getRoomId())).findFirst() :
-                publicRooms.stream().filter((entry) -> entry.getId().toString().equals(registerDto.getRoomId())).findFirst();
+        Optional<Room> first = rooms.stream()
+                .filter((room) -> room.isPrivate() == registerDto.getPrivate())
+                .filter((room) -> room.getId().toString().equals(registerDto.getRoomId()))
+                .findFirst();
 
 
         if (first.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ROOM NOT FOUND");
         }
 
         Room room = first.get();
 
         if(room.getCapacity() <= room.getPlayers().size()){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ROOM ALREADY FULL");
         }
 
         room.getPlayers().add(player);
