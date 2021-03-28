@@ -4,6 +4,7 @@ import { Server } from 'socket.io'
 import { CurrentPlayerData } from 'src/dto/data/current-player.data'
 import { CURRENT_PLAYER } from 'src/events'
 import { Room } from 'src/models/room.model'
+import { User } from 'src/models/user.model'
 import { RoomService } from './room.service'
 import { UserService } from './user.service'
 
@@ -24,18 +25,19 @@ export class GameService {
             })
         }
 
-        const activeIndex: number = Math.floor(Math.random() * room.players.length)
-        const wordIndex: number = Math.floor(Math.random() * room.dictionary.length)
-        const word: string = room.dictionary[wordIndex]
-        room.currentPlayer = room.players[activeIndex]
-        room.currentRound = 1
+        const data: CurrentPlayerData = room.startGame()
 
-        room.currentPlayer.socket.emit(CURRENT_PLAYER, new CurrentPlayerData(word))
+        room.currentPlayer.socket.emit(CURRENT_PLAYER, data)
+        data.word = data.word.replace(/([A-z])/g, '_')
+
+        room.players
+            .filter((player: User) => player.id !== room.currentPlayer.id)
+            .forEach((player: User) => player.socket.emit(CURRENT_PLAYER, data))
 
         return room
     }
 
-    startRound(ownerID: string, server: Server) {
+    startRound(ownerID: string) {
         const room: Room = this.roomService.getRoomByOwnerID(ownerID)
     }
 }

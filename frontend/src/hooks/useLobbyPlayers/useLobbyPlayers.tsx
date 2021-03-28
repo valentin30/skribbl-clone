@@ -5,7 +5,7 @@ import { NewUserData } from '../../types/dto/data/NewUserData'
 import { UserLeftData } from '../../types/dto/data/UserLeftData'
 import { JoinRoomPayload } from '../../types/dto/payload/JoinRoomPayload'
 import { User } from '../../types/User/User'
-import { JOIN_ROOM, NEW_USER_, USER_LEFT } from '../../utils/events'
+import { JOIN_ROOM, NEW_USER, USER_LEFT } from '../../utils/events'
 
 interface UseLobbyPlayers {
     players: User[]
@@ -15,16 +15,18 @@ export const useLobbyPlayers = (roomID: string): UseLobbyPlayers => {
     const [players, setPlayers] = useState<User[]>([])
 
     useEffect(() => {
-        socket.on(NEW_USER_ + roomID, ({ user }: NewUserData) => {
+        socket.emit(JOIN_ROOM, new JoinRoomPayload(roomID))
+    }, [roomID])
+
+    useEffect(() => {
+        socket.on(NEW_USER, ({ user }: NewUserData) => {
             setPlayers((players: User[]) => [...players, user])
         })
 
-        socket.emit(JOIN_ROOM, new JoinRoomPayload(roomID))
-
         return () => {
-            socket.off(NEW_USER_ + roomID)
+            socket.off(NEW_USER)
         }
-    }, [roomID])
+    }, [])
 
     useEffect(() => {
         socket.once(JOIN_ROOM, ({ players }: JoinRoomData) => {

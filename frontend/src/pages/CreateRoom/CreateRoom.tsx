@@ -10,6 +10,7 @@ import { Lobby } from '../../components/CreateRoom/Lobby'
 import { RoomConfig } from '../../components/CreateRoom/RoomConfig'
 import { socket } from '../../Socket/Socket'
 import { CreateRoomData } from '../../types/dto/data/CreateRoomData'
+import { StartGameData } from '../../types/dto/data/StartGameData'
 import { CREATE_ROOM, START_GAME, USER_LEFT } from '../../utils/events'
 import styles from './CreateRoom.module.scss'
 
@@ -38,16 +39,14 @@ export const CreateRoom: FunctionComponent = () => {
     }, [])
 
     useEffect(() => {
-        socket.once(START_GAME, data => {
-            console.log(data)
-
+        socket.on(START_GAME, ({ roomID }: StartGameData) => {
             history.push(`/room?id=${roomID}`)
         })
 
         return () => {
             socket.off(START_GAME)
         }
-    }, [history, roomID])
+    }, [history])
 
     return (
         <form className={styles.root} onSubmit={submitHandler}>

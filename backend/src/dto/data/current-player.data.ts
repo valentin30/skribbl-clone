@@ -1,3 +1,3 @@
 export class CurrentPlayerData {
-    constructor(word: string) {}
+    constructor(public userID: string, public word: string) {}
 }

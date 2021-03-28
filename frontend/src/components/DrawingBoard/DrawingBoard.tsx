@@ -6,7 +6,8 @@ interface Props {}
 
 const defaultProps: CanvasDrawProps = {
     lazyRadius: 0,
-    hideGrid: true
+    hideGrid: true,
+    disabled: true
 }
 
 export const DrawingBoard: FunctionComponent<Props> = props => {

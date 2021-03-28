@@ -1,12 +1,11 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common'
 import { WsException } from '@nestjs/websockets'
 import { Socket } from 'socket.io'
-import { NewUserData } from 'src/dto/data/new-user.data'
+import { JoinRoomData } from 'src/dto/data/join-room.data'
 import { UserLeftData } from 'src/dto/data/user-left.data'
 import { CreateRoomPayload } from 'src/dto/payload/create-room.payload'
 import { JoinRoomPayload } from 'src/dto/payload/join-room.payload'
-import { NEW_USER_, OWNER_LEFT, USER_LEFT } from 'src/events'
-import { JoinRoomServiceResponse } from 'src/interfaces/join-room-service.response'
+import { OWNER_LEFT, USER_LEFT } from 'src/events'
 import { Room } from 'src/models/room.model'
 import { User } from 'src/models/user.model'
 import { UserService } from './user.service'
@@ -37,7 +36,7 @@ export class RoomService {
         return room
     }
 
-    joinRoom(user: User, { roomID }: JoinRoomPayload): JoinRoomServiceResponse {
+    joinRoom(user: User, { roomID }: JoinRoomPayload): JoinRoomData {
         const room: Room | undefined = this.rooms.find((room: Room) => room.id === roomID)
 
         if (!room) {
@@ -50,11 +49,10 @@ export class RoomService {
             throw new WsException({ message: 'Sorry, room is already full' })
         }
 
-        const response: JoinRoomServiceResponse = new JoinRoomServiceResponse(room)
+        const response: JoinRoomData = new JoinRoomData(room)
 
         if (!room.players.includes(user)) {
-            room.players.push(user)
-            response.shouldEmit = true
+            room.addPlayer(user)
         }
 
         return response
@@ -80,26 +78,22 @@ export class RoomService {
 
         const room: Room = this.rooms[index]
 
-        if (room.owner.id === user.id && !room.currentRound) {
-            room.players.forEach((player: User) => {
-                player.socket.emit(OWNER_LEFT)
-            })
+        room.removePlayer(user)
 
-            this.rooms.splice(index, 1)
+        if (room.owner.id !== user.id) {
             return
         }
 
-        const userIndex: number = room.players.findIndex((player: User) => player.id === user.id)
-
-        if (userIndex > -1) {
-            room.players.splice(userIndex, 1)
+        if (room.currentRound) {
+            room.owner = room.players[0]
+            return
         }
 
-        const data: UserLeftData = new UserLeftData(user.id)
-
         room.players.forEach((player: User) => {
-            player.socket.emit(USER_LEFT, data)
+            player.socket.emit(OWNER_LEFT)
         })
+
+        this.rooms.splice(index, 1)
     }
 
     isUserInOtherRoom(userID: string, room?: Room): void {
