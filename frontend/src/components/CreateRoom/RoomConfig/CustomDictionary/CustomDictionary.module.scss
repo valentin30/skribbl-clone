@@ -1,0 +1,21 @@
+.Switch {
+    margin: 0.75rem 0;
+}
+
+.Add {
+    margin-right: -0.5rem !important;
+}
+
+.Chips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+
+    width: fit-content;
+
+    margin: 0.75rem 0;
+
+    & > div {
+        margin: 0.1rem;
+    }
+}

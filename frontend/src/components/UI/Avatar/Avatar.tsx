@@ -1,6 +1,6 @@
 import { Avatar as MAvatar } from '@material-ui/core'
 import React, { FunctionComponent } from 'react'
-import styles from './Avatar.module.css'
+import styles from './Avatar.module.scss'
 
 interface Props {
     name: string
@@ -13,9 +13,9 @@ export const Avatar: FunctionComponent<Props> = props => {
 
     return (
         <MAvatar
-            alt='avatar'
-            className={[styles.Avatar, className].join(' ')}
-            style={{ backgroundColor: color }}>
+            className={[styles.root, className].join(' ')}
+            style={{ backgroundColor: color }}
+            alt='avatar'>
             {name ? name.slice(0, 1).toUpperCase() : null}
         </MAvatar>
     )

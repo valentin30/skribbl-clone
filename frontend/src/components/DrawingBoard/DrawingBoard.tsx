@@ -1,7 +1,6 @@
-import React, { FunctionComponent } from 'react'
-import styles from './DrawingBoard.module.css'
+import { Button } from '@material-ui/core'
+import React, { FunctionComponent, useEffect, useRef } from 'react'
 import Canvas, { CanvasDrawProps } from 'react-canvas-draw'
-import { Input } from '@material-ui/core'
 
 interface Props {}
 
@@ -11,14 +10,35 @@ const defaultProps: CanvasDrawProps = {
 }
 
 export const DrawingBoard: FunctionComponent<Props> = props => {
+    const ref = useRef<Canvas | null>(null)
+
     return (
         <>
             <Canvas
-                {...defaultProps}
+                ref={ref}
                 style={{ backgroundColor: 'black' }}
-                canvasWidth={800}
-                canvasHeight={545}
+                canvasWidth={400}
+                canvasHeight={350}
+                {...defaultProps}
             />
+            <Button
+                onClick={() => {
+                    localStorage.setItem(
+                        'draw',
+                        ref.current?.getSaveData() ?? ''
+                    )
+                }}>
+                Save
+            </Button>
+            <Button
+                onClick={() => {
+                    ref.current?.loadSaveData(
+                        localStorage.getItem('draw') || '',
+                        true
+                    )
+                }}>
+                Load
+            </Button>
         </>
     )
 }

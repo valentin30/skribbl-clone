@@ -1,5 +1,4 @@
 import { ThemeProvider } from '@material-ui/styles'
-import 'fontsource-roboto'
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { BrowserRouter } from 'react-router-dom'
@@ -7,7 +6,8 @@ import { App } from './App'
 import { Layout } from './components/Layout'
 import { theme } from './config/theme'
 import { UserContextProvider } from './context/User/UserContextProvider'
-import './index.css'
+import './index.scss'
+import 'fontsource-roboto'
 import reportWebVitals from './reportWebVitals'
 
 ReactDOM.render(

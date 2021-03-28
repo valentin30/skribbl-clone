@@ -1,45 +1,56 @@
 import { Button } from '@material-ui/core'
-import React, { FunctionComponent, useContext, useEffect, useRef } from 'react'
-import { UserContext } from '../../context/User/UserContext'
-import { IUserContext } from '../../context/User/UserContextInterface'
-import { io, Socket } from 'socket.io-client'
+import React, { FunctionComponent, useEffect, useMemo } from 'react'
+import { useHistory, useLocation } from 'react-router'
+import { DrawingBoard } from '../../components/DrawingBoard'
+import { useDisconnectOnLeave } from '../../hooks/useDisconnectOnLeave'
+import { useLobbyPlayers } from '../../hooks/useLobbyPlayers'
+import { useUser } from '../../hooks/useUser/useUser'
+import { socket } from '../../Socket/Socket'
+import { JoinRoomData } from '../../types/dto/data/JoinRoomData'
+import { JoinRoomPayload } from '../../types/dto/payload/JoinRoomPayload'
+import { JOIN_ROOM, USER_LEFT } from '../../utils/events'
 
 interface Props {}
 
-// const socket = io('http://localhost:4000')
-
 export const Game: FunctionComponent<Props> = props => {
-    const { name } = useContext<IUserContext>(UserContext)
+    const { user } = useUser()
 
-    const socketRef = useRef<Socket>()
+    const history = useHistory()
 
-    useEffect(() => {
-        socketRef.current = io('http://localhost:4000')
-        socketRef.current.onAny(console.log)
-        socketRef.current.on('msgClient', (data: any) => {
-            console.log(data)
-        })
+    const { search } = useLocation()
 
-        socketRef.current.emit('msgServer', 'Valentin')
+    const roomID = useMemo(() => {
+        const params: URLSearchParams = new URLSearchParams(search)
 
-        // return () => {
-        //     socketRef.current?.disconnect()
-        // }
-    }, [])
+        const roomID: string = params.get('id') ?? ''
+
+        return roomID
+    }, [search])
+
+    useDisconnectOnLeave()
+
+    const { players } = useLobbyPlayers(roomID)
+
+    // useEffect(() => {
+    //     socket.once(JOIN_ROOM, ({ hasStarted, players }: JoinRoomData) => {})
+
+    //     socket.emit(JOIN_ROOM, new JoinRoomPayload(roomID as string))
+
+    //     return () => {
+    //         socket.off(JOIN_ROOM)
+    //     }
+    // }, [history, user, roomID])
 
     return (
         <>
             <Button
-                style={{ marginTop: '10rem' }}
+                style={{ marginTop: '6rem' }}
                 variant='contained'
-                color='primary'
-                onClick={async () => {
-                    console.log(socketRef.current)
-
-                    socketRef.current?.emit('msgServer', 'Valentin')
-                }}>
+                color='primary'>
                 Send
             </Button>
+            <DrawingBoard />
+            <pre>{JSON.stringify(players, null, 2)}</pre>
         </>
     )
 }

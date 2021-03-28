@@ -1,25 +1,36 @@
-import { Button, Divider, TextField, Typography } from '@material-ui/core'
+import { TextField } from '@material-ui/core'
 import React, {
     FunctionComponent,
     useCallback,
-    useContext,
+    useEffect,
     useState
 } from 'react'
-import { useHistory } from 'react-router'
+import { useHistory, useLocation } from 'react-router'
 import { Avatar } from '../../components/UI/Avatar'
-import { UserContext } from '../../context/User/UserContext'
-import { IUserContext } from '../../context/User/UserContextInterface'
-import styles from './Home.module.css'
-import { toast } from 'react-toastify'
-import { getRoomId } from '../../service/GetRoomId'
-import { RoomIdResponseDto } from '../../types/dto/RoomIdResponseDto'
+import { PrimaryButton } from '../../components/UI/Button/PrimaryButton'
+import { SecondaryButton } from '../../components/UI/Button/SecondaryButton'
+import { Divider } from '../../components/UI/Divider'
+import { useUser } from '../../hooks/useUser/useUser'
+import { socket } from '../../Socket/Socket'
+import { GetRoomData } from '../../types/dto/data/GetRoomData'
+import { RegisterData } from '../../types/dto/data/RegisterData'
+import { GetRoomPayload } from '../../types/dto/payload/GetRoomPayload'
+import { RegisterPayload } from '../../types/dto/payload/RegisterPayload'
+import { GET_ROOM, REGISTER, USER_LEFT } from '../../utils/events'
+import styles from './Home.module.scss'
 
 interface Props {}
 
 export const Home: FunctionComponent<Props> = props => {
     const history = useHistory()
 
-    const { name, setName, color } = useContext<IUserContext>(UserContext)
+    const { search } = useLocation()
+
+    const {
+        user: { name, color },
+        setUserID,
+        setName
+    } = useUser()
 
     const [error, setError] = useState<string>('')
 
@@ -32,15 +43,24 @@ export const Home: FunctionComponent<Props> = props => {
                 return
             }
 
-            try {
-                const { id }: RoomIdResponseDto = await getRoomId()
+            socket.once(REGISTER, ({ userID }: RegisterData) => {
+                setUserID(userID)
 
-                history.push(`/room?id=${id}`)
-            } catch (error) {
-                toast.error(error.message)
-            }
+                if (search) {
+                    history.push(`/room${search}`)
+                    return
+                }
+
+                socket.once(GET_ROOM, ({ roomID }: GetRoomData) => {
+                    history.push(`/room?id=${roomID}`)
+                })
+
+                socket.emit(GET_ROOM, new GetRoomPayload(userID))
+            })
+
+            socket.emit(REGISTER, new RegisterPayload({ name, color }))
         },
-        [name, history]
+        [name, history, setUserID, color, search]
     )
 
     const createPrivateRoomHandler = useCallback(
@@ -50,9 +70,15 @@ export const Home: FunctionComponent<Props> = props => {
                 return
             }
 
-            history.push('/create-room')
+            socket.once(REGISTER, ({ userID }: RegisterData) => {
+                setUserID(userID)
+
+                history.push('/create-room')
+            })
+
+            socket.emit(REGISTER, new RegisterPayload({ name, color }))
         },
-        [name, history]
+        [name, history, setUserID, color]
     )
 
     const changeHandler = useCallback(
@@ -66,46 +92,30 @@ export const Home: FunctionComponent<Props> = props => {
         setError('')
     }, [])
 
+    useEffect(() => {
+        socket.emit(USER_LEFT)
+    }, [])
+
     return (
         <form className={styles.root} onSubmit={submitHandler}>
-            <Avatar name={name} color={color} className={styles.Avatar} />
+            <Avatar name={name} color={color} />
             <TextField
-                id='outlined-basic'
+                value={name}
+                onFocus={focusHandler}
+                onChange={changeHandler}
+                style={{ marginBottom: error ? '0' : '0.75rem' }}
                 label='Name'
                 variant='outlined'
                 placeholder='Enter your name'
-                className={styles.Input}
-                value={name}
-                onChange={changeHandler}
-                onFocus={focusHandler}
-                style={{ marginBottom: error ? '0' : '0.75rem' }}
                 error={Boolean(error)}
                 helperText={error}
                 fullWidth
             />
-            <Button
-                variant='contained'
-                size='large'
-                color='primary'
-                type='submit'
-                fullWidth>
-                Join Room
-            </Button>
-            <Typography
-                variant='button'
-                color='textSecondary'
-                className={styles.Divider}>
-                <Divider />
-                OR
-                <Divider />
-            </Typography>
-            <Button
-                onClick={createPrivateRoomHandler}
-                variant='outlined'
-                color='primary'
-                fullWidth>
+            <PrimaryButton type='submit'>Join Room</PrimaryButton>
+            <Divider />
+            <SecondaryButton onClick={createPrivateRoomHandler}>
                 Create private room
-            </Button>
+            </SecondaryButton>
         </form>
     )
 }

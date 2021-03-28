@@ -9,11 +9,6 @@ export const colors: string[] = [
 ]
 
 export const getRandomColor = (): string => {
-    // const red: number = Math.floor(Math.random() * 360)
-    // const green: number = Math.floor(Math.random() * 360)
-    // const blue: number = Math.floor(Math.random() * 360)
-    // return `rgb(${red},${green},${blue})`
-
     return colors[Math.floor(Math.random() * colors.length)]
 }
 

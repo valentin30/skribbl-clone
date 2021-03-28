@@ -1,0 +1,1 @@
+export { RoomConfig } from './RoomConfig'

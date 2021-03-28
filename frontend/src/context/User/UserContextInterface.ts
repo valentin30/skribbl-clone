@@ -1,5 +1,6 @@
+import { User } from '../../types/User/User'
+
 export interface IUserContext {
-    name: string
-    color: string
-    setName: (name: string) => void
+    user: User
+    setUser: React.Dispatch<React.SetStateAction<User>>
 }
