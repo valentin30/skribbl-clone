@@ -39,6 +39,12 @@ export const DrawingBoard: FunctionComponent<Props> = props => {
                 }}>
                 Load
             </Button>
+            <Button
+                onClick={() => {
+                    ref.current?.undo()
+                }}>
+                Undo
+            </Button>
         </>
     )
 }

@@ -9,7 +9,7 @@ export class Room {
     public players: User[] = []
     public capacity: number = 5
     public currentRound: number = 0
-    public currentPlayer: User
+    public currentPlayer: User | null
 
     constructor(
         public owner: User,
@@ -17,9 +17,7 @@ export class Room {
         public secondsPerRounds: number = 120,
         public isPrivate: boolean = false,
         public dictionary: string[] = ['car', 'cat', 'dog', 'tree']
-    ) {
-        this.players.push(owner)
-    }
+    ) {}
 
     toIRoom(): IRoom {
         return {

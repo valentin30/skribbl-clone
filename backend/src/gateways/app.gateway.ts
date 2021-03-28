@@ -4,7 +4,7 @@ import { Socket } from 'socket.io'
 import { HelloData } from 'src/dto/data/hello.data'
 import { HelloPayload } from 'src/dto/payload/hello.payload'
 import { BadRequestTransformationFilter } from 'src/filters/bad-request.filter'
-import { HELLO } from '../constants'
+import { HELLO } from '../events'
 
 @WebSocketGateway()
 export class AppGateway {

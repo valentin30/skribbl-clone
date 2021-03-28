@@ -1,6 +1,6 @@
 import { SubscribeMessage, WebSocketGateway, WebSocketServer, WsResponse } from '@nestjs/websockets'
 import { Server, Socket } from 'socket.io'
-import { START_GAME } from 'src/constants'
+import { START_GAME } from 'src/events'
 import { StartGameData } from 'src/dto/data/start-game.data'
 import { Room } from 'src/models/room.model'
 import { GameService } from 'src/services/game.service'
@@ -12,7 +12,7 @@ export class GameGateway {
     constructor(private readonly gameService: GameService) {}
 
     @SubscribeMessage(START_GAME)
-    startGame(client: Socket): WsResponse<StartGameData> {
+    startGameHandler(client: Socket): WsResponse<StartGameData> {
         const room: Room = this.gameService.startGame(client.id)
 
         return {

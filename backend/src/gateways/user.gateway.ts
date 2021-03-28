@@ -11,7 +11,7 @@ import { Server, Socket } from 'socket.io'
 import { BadRequestTransformationFilter } from 'src/filters/bad-request.filter'
 import { User } from 'src/models/user.model'
 import { UserService } from 'src/services/user.service'
-import { OWNER_LEFT, REGISTER, USER_LEFT } from '../constants'
+import { OWNER_LEFT, REGISTER, USER_LEFT } from '../events'
 import { RegisterData } from '../dto/data/register.data'
 import { RegisterPayload } from '../dto/payload/register.payload'
 

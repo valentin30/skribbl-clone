@@ -14,11 +14,12 @@ import { NewUserData } from 'src/dto/data/new-user.data'
 import { CreateRoomPayload } from 'src/dto/payload/create-room.payload'
 import { JoinRoomPayload } from 'src/dto/payload/join-room.payload'
 import { BadRequestTransformationFilter } from 'src/filters/bad-request.filter'
+import { JoinRoomServiceResponse } from 'src/interfaces/join-room-service.response'
 import { Room } from 'src/models/room.model'
 import { User } from 'src/models/user.model'
 import { RoomService } from 'src/services/room.service'
 import { UserService } from 'src/services/user.service'
-import { CREATE_ROOM, GET_ROOM, JOIN_ROOM, NEW_USER_ } from '../constants'
+import { CREATE_ROOM, GET_ROOM, JOIN_ROOM, NEW_USER_ } from '../events'
 
 @WebSocketGateway()
 export class RoomGateway {
@@ -60,22 +61,19 @@ export class RoomGateway {
     @SubscribeMessage(JOIN_ROOM)
     joinRoomHandler(client: Socket, payload: JoinRoomPayload): WsResponse<JoinRoomData> {
         const user: User = this.userService.findByID(client.id)
-        const { id, color, name } = user
 
-        const { id: roomID, currentRound, players }: Room = this.roomService.joinRoom(user, payload)
+        const { roomID, shouldEmit, ...rest }: JoinRoomServiceResponse = this.roomService.joinRoom(
+            user,
+            payload
+        )
 
-        const roomPlayersWithoutCurrent = players
-            .slice(0, -1)
-            .map((player: User) => player.toIUser())
-
-        this.server.emit(NEW_USER_ + roomID, new NewUserData({ id, name, color }))
+        if (shouldEmit) {
+            this.server.emit(NEW_USER_ + roomID, new NewUserData(user.toIUser()))
+        }
 
         return {
             event: JOIN_ROOM,
-            data: {
-                hasStarted: Boolean(currentRound),
-                players: roomPlayersWithoutCurrent
-            }
+            data: rest
         }
     }
 }

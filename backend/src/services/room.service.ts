@@ -1,10 +1,12 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common'
 import { WsException } from '@nestjs/websockets'
 import { Socket } from 'socket.io'
-import { OWNER_LEFT, USER_LEFT } from 'src/constants'
+import { NewUserData } from 'src/dto/data/new-user.data'
 import { UserLeftData } from 'src/dto/data/user-left.data'
 import { CreateRoomPayload } from 'src/dto/payload/create-room.payload'
 import { JoinRoomPayload } from 'src/dto/payload/join-room.payload'
+import { NEW_USER_, OWNER_LEFT, USER_LEFT } from 'src/events'
+import { JoinRoomServiceResponse } from 'src/interfaces/join-room-service.response'
 import { Room } from 'src/models/room.model'
 import { User } from 'src/models/user.model'
 import { UserService } from './user.service'
@@ -35,7 +37,7 @@ export class RoomService {
         return room
     }
 
-    joinRoom(user: User, { roomID }: JoinRoomPayload): Room {
+    joinRoom(user: User, { roomID }: JoinRoomPayload): JoinRoomServiceResponse {
         const room: Room | undefined = this.rooms.find((room: Room) => room.id === roomID)
 
         if (!room) {
@@ -48,18 +50,20 @@ export class RoomService {
             throw new WsException({ message: 'Sorry, room is already full' })
         }
 
+        const response: JoinRoomServiceResponse = new JoinRoomServiceResponse(room)
+
         if (!room.players.includes(user)) {
             room.players.push(user)
+            response.shouldEmit = true
         }
 
-        return room
+        return response
     }
 
     create(client: Socket, { rounds, secondsPerRound }: CreateRoomPayload): Room {
         this.isUserInOtherRoom(client.id)
 
         const owner: User = this.userService.findByID(client.id)
-
         const room: Room = new Room(owner, rounds, secondsPerRound, true)
 
         this.rooms.push(room)
@@ -76,7 +80,7 @@ export class RoomService {
 
         const room: Room = this.rooms[index]
 
-        if (room.owner.id === user.id) {
+        if (room.owner.id === user.id && !room.currentRound) {
             room.players.forEach((player: User) => {
                 player.socket.emit(OWNER_LEFT)
             })
