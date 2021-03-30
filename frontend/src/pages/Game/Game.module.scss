@@ -1,0 +1,70 @@
+.root {
+    display: grid;
+
+    grid-template-columns: 13rem auto 18rem;
+    grid-template-areas:
+        'word word word'
+        'players board chat';
+
+    column-gap: 1rem;
+    row-gap: 1rem;
+
+    margin-top: 3rem;
+}
+
+.Backdrop {
+    z-index: 4000;
+}
+.Word {
+    grid-area: word;
+    position: relative;
+
+    & > div {
+        padding: 0.4rem !important;
+        padding-bottom: 0.1rem !important;
+        display: flex;
+        align-items: center;
+
+        & > span {
+            margin-left: 0.4rem;
+            font-size: 1rem;
+        }
+    }
+}
+
+.Timer {
+    position: relative;
+
+    & span {
+        position: absolute !important;
+        left: 48% !important;
+        top: 46% !important;
+        transform: translate(-50%, -50%);
+    }
+
+    & > svg {
+        margin: 0;
+    }
+}
+
+.Text {
+    position: absolute !important;
+
+    left: 50% !important;
+
+    transform: translate(-50%);
+}
+
+@media (max-width: 1175px) {
+    .root {
+        margin-top: 1rem;
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            'word'
+            'board'
+            ' chat'
+            'players';
+
+        row-gap: 1rem;
+    }
+}

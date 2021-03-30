@@ -28,9 +28,9 @@ export class RoomService {
             .find(room => room.players.length < room.capacity)
 
         if (!room) {
-            const room: Room = new Room(user)
-            this.rooms.push(room)
-            return room
+            const newRoom: Room = new Room(user)
+            this.rooms.push(newRoom)
+            return newRoom
         }
 
         return room
@@ -45,15 +45,17 @@ export class RoomService {
 
         this.isUserInOtherRoom(user.id, room)
 
+        const response: JoinRoomData = new JoinRoomData(room)
+
+        if (room.players.includes(user)) {
+            return response
+        }
+
         if (room.capacity === room.players.length) {
             throw new WsException({ message: 'Sorry, room is already full' })
         }
 
-        const response: JoinRoomData = new JoinRoomData(room)
-
-        if (!room.players.includes(user)) {
-            room.addPlayer(user)
-        }
+        room.addPlayer(user)
 
         return response
     }

@@ -4,7 +4,7 @@
     top: 0;
     left: 0;
 
-    z-index: 1000;
+    z-index: 1100;
 
     width: 100%;
     height: fit-content;
@@ -26,6 +26,22 @@
 
             margin-right: 0.5rem;
             margin-bottom: 0.2rem;
+        }
+    }
+}
+
+.Content {
+    padding-top: 6rem;
+}
+
+@media (max-width: 500px) {
+    .root {
+        & > a {
+            font-size: 2rem !important;
+
+            & > svg {
+                font-size: 2.5rem !important;
+            }
         }
     }
 }

@@ -1,9 +1,16 @@
 import { FormControl, InputLabel, MenuItem, Select } from '@material-ui/core'
-import React, { FunctionComponent, useCallback } from 'react'
+import React, { FunctionComponent } from 'react'
 import styles from './RoomSettings.module.scss'
 
 interface Props {
-    state: [SelectState, React.Dispatch<React.SetStateAction<SelectState>>]
+    value: SelectState
+    onChange: (
+        event: React.ChangeEvent<{
+            name?: string | undefined
+            value: unknown
+        }>,
+        child: React.ReactNode
+    ) => void
 }
 
 export interface SelectState {
@@ -11,43 +18,16 @@ export interface SelectState {
     secondsPerRound: number | string
 }
 
-export const defaultSelectState = {
-    rounds: '',
-    secondsPerRound: ''
-}
-
 export const RoomSettings: FunctionComponent<Props> = props => {
-    const {
-        state: [selectState, setSelectState]
-    } = props
-
-    const changeHandler = useCallback(
-        (
-            event: React.ChangeEvent<{
-                name?: string | undefined
-                value: unknown
-            }>,
-            _: React.ReactNode
-        ) => {
-            if (!event.target.name) {
-                return
-            }
-
-            setSelectState((values: SelectState) => ({
-                ...values,
-                [event.target.name as string]: event.target.value as number
-            }))
-        },
-        [setSelectState]
-    )
+    const { onChange, value } = props
 
     return (
         <>
             <FormControl variant='outlined' fullWidth>
                 <InputLabel id='rounds'>Rounds</InputLabel>
                 <Select
-                    value={selectState.rounds}
-                    onChange={changeHandler}
+                    value={value.rounds}
+                    onChange={onChange}
                     id='rounds-select'
                     labelId='rounds'
                     label='Rounds'
@@ -62,8 +42,8 @@ export const RoomSettings: FunctionComponent<Props> = props => {
             <FormControl className={styles.root} variant='outlined' fullWidth>
                 <InputLabel id='timer'>Drawing Time</InputLabel>
                 <Select
-                    value={selectState.secondsPerRound}
-                    onChange={changeHandler}
+                    value={value.secondsPerRound}
+                    onChange={onChange}
                     id='timer-select'
                     labelId='timer'
                     label='Drawing Time'

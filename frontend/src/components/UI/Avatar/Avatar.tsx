@@ -6,14 +6,15 @@ interface Props {
     name: string
     color: string
     className?: string
+    small?: boolean
 }
 
 export const Avatar: FunctionComponent<Props> = props => {
-    const { color, name, className } = props
+    const { color, name, className, small } = props
 
     return (
         <MAvatar
-            className={[styles.root, className].join(' ')}
+            className={[small ? undefined : styles.root, className].join(' ')}
             style={{ backgroundColor: color }}
             alt='avatar'>
             {name ? name.slice(0, 1).toUpperCase() : null}

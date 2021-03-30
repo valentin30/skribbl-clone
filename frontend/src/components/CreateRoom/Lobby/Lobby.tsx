@@ -1,11 +1,10 @@
-import { Button } from '@material-ui/core'
 import React, { FunctionComponent } from 'react'
-import { useLobbyPlayers } from '../../../hooks/useLobbyPlayers'
-import { useUser } from '../../../hooks/useUser/useUser'
+import { useLobbyPlayers } from '../../../hooks/Socket/useLobbyPlayers'
 import { User } from '../../../types/User/User'
+import { PrimaryButton } from '../../UI/Button/PrimaryButton'
 import { AddPlayers } from './AddPlayers'
 import styles from './Lobby.module.scss'
-import { PlayerAvatar } from './PlayerAvatar'
+import { PlayerAvatar } from '../../UI/PlayerAvatar'
 
 interface Props {
     roomID: string
@@ -13,7 +12,6 @@ interface Props {
 
 export const Lobby: FunctionComponent<Props> = props => {
     const { roomID } = props
-
     const { players } = useLobbyPlayers(roomID)
 
     return (
@@ -24,15 +22,9 @@ export const Lobby: FunctionComponent<Props> = props => {
                 ))}
             </div>
             <AddPlayers roomID={roomID} />
-            <Button
-                className={styles.Margin}
-                variant='contained'
-                color='primary'
-                size='large'
-                type='submit'
-                fullWidth>
+            <PrimaryButton className={styles.Margin} type='submit'>
                 Start Game
-            </Button>
+            </PrimaryButton>
         </>
     )
 }

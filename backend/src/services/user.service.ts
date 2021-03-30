@@ -22,7 +22,7 @@ export class UserService {
         return user
     }
 
-    disconnect(client: Socket) {
+    disconnect(client: Socket): void {
         try {
             const user: User = this.findByID(client.id)
             this.roomService.removeUserCascade(user)

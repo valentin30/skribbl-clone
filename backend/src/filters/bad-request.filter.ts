@@ -4,7 +4,10 @@ import { BaseWsExceptionFilter, WsException } from '@nestjs/websockets'
 @Catch(BadRequestException)
 export class BadRequestTransformationFilter extends BaseWsExceptionFilter {
     catch(exception: BadRequestException, host: ArgumentsHost) {
-        const properError: WsException = new WsException('Bad Request Exception')
+        const properError: WsException = new WsException({
+            status: 'info',
+            message: 'Please make sure all the information is provided'
+        })
         super.catch(properError, host)
     }
 }

@@ -1,26 +1,17 @@
 import { Step, StepLabel, Stepper } from '@material-ui/core'
-import React, {
-    FunctionComponent,
-    useCallback,
-    useEffect,
-    useState
-} from 'react'
-import { useHistory } from 'react-router'
+import React, { FunctionComponent, useCallback, useMemo } from 'react'
 import { Lobby } from '../../components/CreateRoom/Lobby'
 import { RoomConfig } from '../../components/CreateRoom/RoomConfig'
+import { useCreateRoomListener } from '../../hooks/Socket/useGetRoomID'
+import { useStartGameListener } from '../../hooks/Socket/useStartGameListener'
 import { socket } from '../../Socket/Socket'
-import { CreateRoomData } from '../../types/dto/data/CreateRoomData'
-import { StartGameData } from '../../types/dto/data/StartGameData'
-import { CREATE_ROOM, START_GAME, USER_LEFT } from '../../utils/events'
+import { START_GAME } from '../../utils/events'
 import styles from './CreateRoom.module.scss'
 
-const labels: string[] = ['Room Settings', 'Add Players']
-
 export const CreateRoom: FunctionComponent = () => {
-    const history = useHistory()
+    const { roomID } = useCreateRoomListener()
 
-    const [activeStep, setActiveStep] = useState<number>(0)
-    const [roomID, setRoomID] = useState<string>('')
+    const activeStep = useMemo<number>(() => (roomID ? 1 : 0), [roomID])
 
     const submitHandler = useCallback((event: React.FormEvent) => {
         event.preventDefault()
@@ -28,37 +19,19 @@ export const CreateRoom: FunctionComponent = () => {
         socket.emit(START_GAME)
     }, [])
 
-    useEffect(() => {
-        socket.once(CREATE_ROOM, ({ roomID }: CreateRoomData) => {
-            setRoomID(roomID)
-        })
-
-        return () => {
-            socket.off(CREATE_ROOM)
-        }
-    }, [])
-
-    useEffect(() => {
-        socket.on(START_GAME, ({ roomID }: StartGameData) => {
-            history.push(`/room?id=${roomID}`)
-        })
-
-        return () => {
-            socket.off(START_GAME)
-        }
-    }, [history])
+    useStartGameListener()
 
     return (
         <form className={styles.root} onSubmit={submitHandler}>
             <Stepper activeStep={activeStep} alternativeLabel>
-                {labels.map((label: string) => (
-                    <Step key={label}>
-                        <StepLabel>{label}</StepLabel>
-                    </Step>
-                ))}
+                <Step>
+                    <StepLabel>Room Settings</StepLabel>
+                </Step>
+                <Step>
+                    <StepLabel>Add Players</StepLabel>
+                </Step>
             </Stepper>
-            {!activeStep && <RoomConfig onStepChange={setActiveStep} />}
-            {activeStep === 1 && roomID && <Lobby roomID={roomID} />}
+            {!roomID ? <RoomConfig /> : <Lobby roomID={roomID} />}
         </form>
     )
 }

@@ -1,0 +1,13 @@
+.root {
+    grid-area: players;
+
+    & > div {
+        & > div:nth-child(2) {
+            margin-top: 1rem;
+
+            & > div {
+                margin-bottom: 0.5rem;
+            }
+        }
+    }
+}

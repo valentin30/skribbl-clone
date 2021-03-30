@@ -20,6 +20,10 @@ export interface Word {
     content: string
 }
 
+//TO DO:
+//Change Props
+//Extract Logic somewhere else
+
 export const CustomDictionary: FunctionComponent<Props> = props => {
     const {
         dictionaryState: [dictionary, setDictionary],

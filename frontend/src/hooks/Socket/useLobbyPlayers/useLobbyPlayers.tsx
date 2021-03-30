@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
-import { socket } from '../../Socket/Socket'
-import { JoinRoomData } from '../../types/dto/data/JoinRoomData'
-import { NewUserData } from '../../types/dto/data/NewUserData'
-import { UserLeftData } from '../../types/dto/data/UserLeftData'
-import { JoinRoomPayload } from '../../types/dto/payload/JoinRoomPayload'
-import { User } from '../../types/User/User'
-import { JOIN_ROOM, NEW_USER, USER_LEFT } from '../../utils/events'
+import { socket } from '../../../Socket/Socket'
+import { JoinRoomData } from '../../../types/dto/data/JoinRoomData'
+import { NewUserData } from '../../../types/dto/data/NewUserData'
+import { UserLeftData } from '../../../types/dto/data/UserLeftData'
+import { JoinRoomPayload } from '../../../types/dto/payload/JoinRoomPayload'
+import { User } from '../../../types/User/User'
+import { JOIN_ROOM, NEW_USER, USER_LEFT } from '../../../utils/events'
 
 interface UseLobbyPlayers {
     players: User[]

@@ -1,6 +1,8 @@
 body {
     margin: 0;
     height: 100vh;
+
+    font-family: 'Roboto', sans-serif;
 }
 
 code {
@@ -14,12 +16,10 @@ code {
     align-items: center;
 }
 
-.Toastify__toast-container--bottom-left {
-    bottom: 0 !important;
-}
+.snackbar__close-btn {
+    padding: 0.5rem !important;
 
-@media (max-width: 480px) {
-    .Toastify__toast {
-        border-radius: 0 !important;
+    & svg {
+        font-size: 1.3rem !important;
     }
 }

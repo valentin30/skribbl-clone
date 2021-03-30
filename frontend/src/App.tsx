@@ -1,6 +1,6 @@
 import React, { FunctionComponent } from 'react'
 import { Route, Switch } from 'react-router'
-import { useExceptionHandler } from './hooks/useExceptionHandler'
+import { useExceptionHandler } from './hooks/Socket/useExceptionHandler'
 import { useUser } from './hooks/useUser/useUser'
 import { CreateRoom } from './pages/CreateRoom'
 import { Game } from './pages/Game'

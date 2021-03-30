@@ -1,0 +1,18 @@
+.root {
+    & > div {
+        position: relative;
+    }
+}
+
+.Controls {
+    margin-left: 16rem;
+    margin-top: 0;
+    min-height: 3rem;
+
+    display: flex;
+
+    & > div:first-child {
+        margin-left: 0.5rem;
+        width: 4.625rem;
+    }
+}

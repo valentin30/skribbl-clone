@@ -1,8 +1,8 @@
 import { Button, TextField } from '@material-ui/core'
 import { FileCopy } from '@material-ui/icons'
 import React, { FunctionComponent, useCallback, useMemo } from 'react'
-import { toast } from 'react-toastify'
 import styles from './AddPlayers.module.scss'
+import { useSnackbar, SnackbarKey } from 'notistack'
 
 interface Props {
     roomID: string
@@ -11,30 +11,52 @@ interface Props {
 export const AddPlayers: FunctionComponent<Props> = props => {
     const { roomID } = props
 
-    const link = useMemo<string>(() => `${window.origin}/room?id=${roomID}`, [
-        roomID
-    ])
+    const { enqueueSnackbar, closeSnackbar } = useSnackbar()
+
+    const link = useMemo<string>(() => {
+        return `${window.origin}/room?id=${roomID}`
+    }, [roomID])
 
     const copyToClipboardHandler = useCallback(
         async (event: React.MouseEvent<HTMLButtonElement>) => {
             if (!navigator.clipboard) {
-                toast.error('Clipboard not accessable')
+                const key: SnackbarKey = enqueueSnackbar(
+                    'Clipboard not accessable',
+                    {
+                        variant: 'default',
+                        onClick: () => {
+                            closeSnackbar(key)
+                        }
+                    }
+                )
                 return
             }
 
             try {
                 await navigator.clipboard.writeText(link)
 
-                toast.success('Copied to clipboard', {
-                    position: 'bottom-left'
-                })
+                const key: SnackbarKey = enqueueSnackbar(
+                    'Copied to clipboard',
+                    {
+                        variant: 'default',
+                        onClick: () => {
+                            closeSnackbar(key)
+                        }
+                    }
+                )
             } catch (error) {
-                toast.error('Clipboard not accessable', {
-                    position: 'bottom-left'
-                })
+                const key: SnackbarKey = enqueueSnackbar(
+                    'Clipboard not accessable',
+                    {
+                        variant: 'default',
+                        onClick: () => {
+                            closeSnackbar(key)
+                        }
+                    }
+                )
             }
         },
-        [link]
+        [link, enqueueSnackbar, closeSnackbar]
     )
     return (
         <TextField

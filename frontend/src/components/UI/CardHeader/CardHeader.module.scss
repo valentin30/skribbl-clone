@@ -1,0 +1,18 @@
+.root {
+    & > div {
+        padding: 0.75rem !important;
+        padding-bottom: 0 !important;
+
+        & > span {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+
+            & > svg {
+                font-size: 1.5rem !important;
+                margin-bottom: 0.1rem;
+                margin-right: 0.5rem;
+            }
+        }
+    }
+}
