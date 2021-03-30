@@ -1,0 +1,1 @@
+export { useCurrentWordListener } from './useCurrentWordListener'

@@ -1,0 +1,11 @@
+.root {
+    grid-area: word;
+    position: relative;
+
+    & > div {
+        padding: 0.4rem !important;
+        padding-bottom: 0.1rem !important;
+        display: flex;
+        align-items: center;
+    }
+}

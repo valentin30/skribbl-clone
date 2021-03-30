@@ -6,7 +6,7 @@
     width: fit-content;
 }
 
-.small {
+.Small {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -14,4 +14,20 @@
     width: fit-content;
 
     gap: 0.5rem;
+
+    & > p {
+        display: flex;
+        align-items: center;
+
+        & > svg {
+            margin-left: 0.2rem;
+            margin-top: 0.1rem !important;
+
+            color: rgba(0, 0, 0, 0.7);
+        }
+    }
+}
+
+.Selected {
+    background-color: rgba(0, 0, 0, 0.12);
 }

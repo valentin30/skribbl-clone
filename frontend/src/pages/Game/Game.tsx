@@ -1,92 +1,51 @@
-import {
-    Backdrop,
-    Card,
-    CardContent,
-    CircularProgress,
-    Typography
-} from '@material-ui/core'
-import React, { FunctionComponent, useEffect, useMemo, useState } from 'react'
-import { useLocation } from 'react-router'
-import { DrawingBoard } from '../../components/DrawingBoard'
+import React, { FunctionComponent, useEffect, useState } from 'react'
 import { Chat } from '../../components/Game/Chat'
+import { DrawingBoard } from '../../components/Game/DrawingBoard'
+import { Header } from '../../components/Game/Header'
 import { ScoreBoard } from '../../components/Game/ScoreBoard'
+import { useRoom } from '../../hooks/Room/useRoom'
+import { useCurrentPlayerListener } from '../../hooks/Socket/useCurrentPlayerListenr'
+import { useCurrentRoundListener } from '../../hooks/Socket/useCurrentRoundListener'
+import { useCurrentWordListener } from '../../hooks/Socket/useCurrentWordListener'
 import { useDisconnectOnLeave } from '../../hooks/Socket/useDisconnectOnLeave'
-import { useLobbyPlayers } from '../../hooks/Socket/useLobbyPlayers'
 import { socket } from '../../Socket/Socket'
 import { JoinRoomData } from '../../types/dto/data/JoinRoomData'
 import { JOIN_ROOM } from '../../utils/events'
 import styles from './Game.module.scss'
+
 interface Props {}
 
 export const Game: FunctionComponent<Props> = props => {
-    const { search } = useLocation()
-    const [hasStarted, setHasStarted] = useState<boolean>(false)
-
-    const [timer, setTimer] = useState<number>(110)
-
-    const roomID = useMemo(() => {
-        const params: URLSearchParams = new URLSearchParams(search)
-
-        const roomID: string = params.get('id') ?? ''
-
-        return roomID
-    }, [search])
-
-    useDisconnectOnLeave()
-
-    const { players } = useLobbyPlayers(roomID)
+    const {
+        methods: { setSecondsPerRound, setRounds, setCurrentRound, setWord }
+    } = useRoom()
 
     useEffect(() => {
-        socket.once(JOIN_ROOM, ({ hasStarted }: JoinRoomData) => {
-            setHasStarted(hasStarted)
-        })
+        socket.once(
+            JOIN_ROOM,
+            ({ secondsPerRound, currentRound, rounds, word }: JoinRoomData) => {
+                setSecondsPerRound(secondsPerRound)
+                setRounds(rounds)
+                setCurrentRound(currentRound)
+                setWord(word)
+            }
+        )
 
         return () => {
             socket.off(JOIN_ROOM)
         }
-    }, [])
+    }, [setSecondsPerRound, setRounds, setCurrentRound, setWord])
 
-    useEffect(() => {
-        const timeout: NodeJS.Timeout = setInterval(() => {
-            setTimer(timer => {
-                if (timer === 1) {
-                    clearInterval(timeout)
-                }
-                return timer - 1
-            })
-        }, 1000)
-
-        return () => {
-            clearInterval(timeout)
-        }
-    }, [])
+    useCurrentWordListener()
+    useCurrentRoundListener()
+    useCurrentPlayerListener()
+    useDisconnectOnLeave()
 
     return (
         <>
             <div className={styles.root}>
-                <Card className={styles.Word} variant='outlined'>
-                    <CardContent>
-                        <div className={styles.Timer}>
-                            <CircularProgress
-                                variant='static'
-                                value={timer / 1.1}
-                            />
-                            <Typography variant='button' color='textSecondary'>
-                                {timer}
-                            </Typography>
-                        </div>
-                        <Typography variant='button' color='textSecondary'>
-                            Round {1} of {3}
-                        </Typography>
-                        <Typography
-                            className={styles.Text}
-                            style={{ letterSpacing: '4px' }}
-                            variant='button'>
-                            h_____
-                        </Typography>
-                    </CardContent>
-                </Card>
-                <ScoreBoard players={players} />
+                <Header />
+                <ScoreBoard />
                 <DrawingBoard />
                 <Chat />
             </div>

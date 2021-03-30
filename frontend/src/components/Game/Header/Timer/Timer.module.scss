@@ -1,0 +1,14 @@
+.root {
+    position: relative;
+
+    & span {
+        position: absolute !important;
+        left: 48% !important;
+        top: 46% !important;
+        transform: translate(-50%, -50%);
+    }
+
+    & > svg {
+        margin: 0;
+    }
+}

@@ -1,11 +1,12 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common'
 import { WsException } from '@nestjs/websockets'
 import { Socket } from 'socket.io'
+import { CurrentPlayerData } from 'src/dto/data/current-player.data'
 import { JoinRoomData } from 'src/dto/data/join-room.data'
 import { UserLeftData } from 'src/dto/data/user-left.data'
 import { CreateRoomPayload } from 'src/dto/payload/create-room.payload'
 import { JoinRoomPayload } from 'src/dto/payload/join-room.payload'
-import { OWNER_LEFT, USER_LEFT } from 'src/events'
+import { CURRENT_PLAYER, OWNER_LEFT, USER_LEFT } from 'src/events'
 import { Room } from 'src/models/room.model'
 import { User } from 'src/models/user.model'
 import { UserService } from './user.service'
@@ -47,7 +48,13 @@ export class RoomService {
 
         const response: JoinRoomData = new JoinRoomData(room)
 
+        response.word = room.getWord(user.id)
+
         if (room.players.includes(user)) {
+            if (room.currentPlayer) {
+                user.socket.emit(CURRENT_PLAYER, new CurrentPlayerData(room.currentPlayer.id))
+            }
+
             return response
         }
 
@@ -113,7 +120,8 @@ export class RoomService {
     }
 
     getRoomByOwnerID(ownerID: string): Room {
-        const room: Room | undefined = this.rooms.find((room: Room) => room.owner.id === ownerID)
+        const room: Room | undefined = this.rooms.find((room: Room) => room.owner?.id === ownerID)
+        console.log(ownerID)
 
         if (!room) {
             throw new WsException('You dont have any rooms')

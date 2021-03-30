@@ -1,13 +1,12 @@
 .root {
     grid-area: players;
 
-    & > div {
-        & > div:nth-child(2) {
-            margin-top: 1rem;
-
-            & > div {
-                margin-bottom: 0.5rem;
-            }
+    & > div:nth-child(2) {
+        & > div {
+            box-sizing: border-box;
+            padding: 0.25rem 1rem;
+            width: 100%;
+            border-radius: 4px;
         }
     }
 }

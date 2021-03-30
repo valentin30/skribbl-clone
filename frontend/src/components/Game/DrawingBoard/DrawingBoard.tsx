@@ -9,12 +9,12 @@ import React, {
     useState
 } from 'react'
 import Canvas, { CanvasDrawProps } from 'react-canvas-draw'
-import { Colors } from '../Game/Colors'
-import { Sizes } from '../Game/Sizes'
-import { ControllButton } from '../UI/Button/ControllButton'
-import { Brush } from '../UI/Icon/Brush'
-import { Eraser } from '../UI/Icon/Eraser'
-import { Undo } from '../UI/Icon/Undo'
+import { Colors } from './Colors'
+import { Sizes } from './Sizes'
+import { ControllButton } from '../../UI/Button/ControllButton'
+import { Brush } from '../../UI/Icon/Brush'
+import { Eraser } from '../../UI/Icon/Eraser'
+import { Undo } from '../../UI/Icon/Undo'
 import styles from './DrawingBoard.module.scss'
 
 interface Props {}

@@ -1,8 +1,19 @@
+import { SECOND } from 'src/constants'
 import { CurrentPlayerData } from 'src/dto/data/current-player.data'
+import { CurrentRoundData } from 'src/dto/data/current-round.data'
+import { CurrentWordData } from 'src/dto/data/current-word.data'
 import { NewUserData } from 'src/dto/data/new-user.data'
 import { UserLeftData } from 'src/dto/data/user-left.data'
 import { CreateRoomPayload } from 'src/dto/payload/create-room.payload'
-import { NEW_USER, OWNER_LEFT, USER_LEFT } from 'src/events'
+import {
+    CURRENT_PLAYER,
+    CURRENT_ROUND,
+    CURRENT_WORD,
+    NEW_USER,
+    OWNER_LEFT,
+    TIMER,
+    USER_LEFT
+} from 'src/events'
 import { CreateRoomOptions } from 'src/interfaces/create-room-options.interface'
 import { IRoom } from 'src/interfaces/room.interface'
 import { v4 } from 'uuid'
@@ -14,6 +25,8 @@ export class Room {
     public capacity: number = 5
     public currentRound: number = 0
     public currentPlayer: User | null
+    public seconds: number
+    public word: string = ''
 
     constructor(
         public owner: User,
@@ -21,7 +34,9 @@ export class Room {
         public secondsPerRounds: number = 120,
         public isPrivate: boolean = false,
         public dictionary: string[] = ['car', 'cat', 'dog', 'tree']
-    ) {}
+    ) {
+        this.seconds = secondsPerRounds
+    }
 
     toIRoom(): IRoom {
         return {
@@ -35,13 +50,17 @@ export class Room {
             dictionary: this.dictionary
         }
     }
-    addPlayer(user: User) {
+    addPlayer(user: User): void {
         this.players.push(user)
         this.newPlayerHandler(user)
     }
 
-    newPlayerHandler(user: User) {
+    newPlayerHandler(user: User): void {
         const data: NewUserData = new NewUserData(user.toIUser())
+
+        if (this.currentPlayer) {
+            user.socket.emit(CURRENT_PLAYER, new CurrentPlayerData(this.currentPlayer.id))
+        }
 
         this.players.forEach((player: User) => {
             player.socket.emit(NEW_USER, data)
@@ -64,16 +83,48 @@ export class Room {
         })
     }
 
-    startGame(): CurrentPlayerData {
+    startGame(): void {
         if (this.currentRound) {
             return
         }
 
-        this.currentRound = 1
-        this.setNewCurrentPlayer()
-        const word: string = this.getWord()
+        this.nextRound()
 
-        return new CurrentPlayerData(this.currentPlayer.id, word)
+        // start round should be called when current player emits the chosen word
+        this.startRound('doggo')
+    }
+
+    nextRound(): void {
+        this.currentRound++
+        this.setNewCurrentPlayer()
+
+        const roundData: CurrentRoundData = new CurrentRoundData(this.currentRound)
+        const playerData = new CurrentPlayerData(this.currentPlayer.id)
+
+        this.players.forEach((player: User) => {
+            player.socket.emit(CURRENT_PLAYER, playerData)
+            player.socket.emit(CURRENT_ROUND, roundData)
+        })
+    }
+
+    startRound(word: string): void {
+        this.setWord(word)
+
+        this.startTimer()
+    }
+
+    startTimer(): void {
+        const timer: NodeJS.Timeout = setInterval(() => {
+            if (this.seconds === 1) {
+                clearInterval(timer)
+            }
+
+            this.seconds--
+
+            this.players.forEach((player: User) => {
+                player.socket.emit(TIMER, this.seconds)
+            })
+        }, SECOND)
     }
 
     setNewCurrentPlayer(): void {
@@ -81,8 +132,25 @@ export class Room {
         this.currentPlayer = this.players[activeIndex]
     }
 
-    getWord(): string {
-        const wordIndex: number = Math.floor(Math.random() * this.dictionary.length)
-        return this.dictionary[wordIndex]
+    setWord(word: string): void {
+        this.word = word
+
+        this.players.forEach((player: User) => {
+            player.socket.emit(CURRENT_WORD, new CurrentWordData(this.getWord(player.id)))
+        })
+    }
+
+    getWord(userID: string): string {
+        if (!this.currentPlayer) {
+            return ''
+        }
+
+        if (userID === this.currentPlayer.id) {
+            return this.word
+        }
+
+        const word: string = this.word.replace(/([A-z])/g, '_')
+
+        return word
     }
 }

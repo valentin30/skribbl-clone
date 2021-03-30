@@ -5,9 +5,16 @@ import { User } from 'src/models/user.model'
 export class JoinRoomData {
     public hasStarted: boolean
     public players: IUser[]
+    public secondsPerRound: number
+    public rounds: number
+    public currentRound: number
+    public word: string
 
     constructor(room: Room) {
         this.hasStarted = Boolean(room.currentRound)
         this.players = room.players.map((player: User) => player.toIUser())
+        this.secondsPerRound = room.secondsPerRounds
+        this.currentRound = room.currentRound
+        this.rounds = room.rounds
     }
 }

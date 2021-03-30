@@ -1,5 +1,6 @@
 import React, { FunctionComponent } from 'react'
 import { Route, Switch } from 'react-router'
+import { RoomContextProvider } from './context/Room/RoomContextProvider'
 import { useExceptionHandler } from './hooks/Socket/useExceptionHandler'
 import { useUser } from './hooks/useUser/useUser'
 import { CreateRoom } from './pages/CreateRoom'
@@ -19,7 +20,9 @@ export const App: FunctionComponent<Props> = props => {
     return (
         <Switch>
             <Route path='/room' exact>
-                <Game />
+                <RoomContextProvider>
+                    <Game />
+                </RoomContextProvider>
             </Route>
             <Route path='/create-room' exact>
                 <CreateRoom />

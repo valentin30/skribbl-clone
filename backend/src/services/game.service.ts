@@ -25,14 +25,7 @@ export class GameService {
             })
         }
 
-        const data: CurrentPlayerData = room.startGame()
-
-        room.currentPlayer.socket.emit(CURRENT_PLAYER, data)
-        data.word = data.word.replace(/([A-z])/g, '_')
-
-        room.players
-            .filter((player: User) => player.id !== room.currentPlayer.id)
-            .forEach((player: User) => player.socket.emit(CURRENT_PLAYER, data))
+        room.startGame()
 
         return room
     }
