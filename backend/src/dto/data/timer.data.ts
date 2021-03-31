@@ -1,3 +1,3 @@
-export interface TimerData {
-    seconds: number
+export class TimerData {
+    constructor(public seconds: number) {}
 }

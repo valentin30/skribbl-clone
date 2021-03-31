@@ -1,26 +1,20 @@
 import { Typography } from '@material-ui/core'
 import React, { FunctionComponent } from 'react'
+import { useDisabled } from '../../../../hooks/Room/useDisabled'
 import { useRoom } from '../../../../hooks/Room/useRoom'
-import { useUser } from '../../../../hooks/useUser/useUser'
 import styles from './Word.module.scss'
 
 interface Props {}
 
 export const Word: FunctionComponent<Props> = props => {
+    const { disabled } = useDisabled()
     const {
-        state: { word, currentPlayerID }
+        state: { word }
     } = useRoom()
-
-    const {
-        user: { id }
-    } = useUser()
 
     return (
         <Typography
-            className={[
-                styles.root,
-                currentPlayerID !== id ? styles.Spacer : ''
-            ].join(' ')}
+            className={[styles.root, disabled ? styles.Spacer : ''].join(' ')}
             variant='button'>
             {word}
         </Typography>

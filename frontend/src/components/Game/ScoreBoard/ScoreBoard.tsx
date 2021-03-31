@@ -36,7 +36,7 @@ export const ScoreBoard: FunctionComponent = () => {
                     <PlayerAvatar
                         key={user.id}
                         user={user}
-                        selected={id === user.id}
+                        selected={user.id === id}
                         drawing={currentPlayerID === user.id}
                         small
                     />

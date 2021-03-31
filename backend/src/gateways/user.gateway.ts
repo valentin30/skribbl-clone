@@ -11,9 +11,9 @@ import { Server, Socket } from 'socket.io'
 import { BadRequestTransformationFilter } from 'src/filters/bad-request.filter'
 import { User } from 'src/models/user.model'
 import { UserService } from 'src/services/user.service'
-import { OWNER_LEFT, REGISTER, USER_LEFT } from '../events'
 import { RegisterData } from '../dto/data/register.data'
 import { RegisterPayload } from '../dto/payload/register.payload'
+import { REGISTER, USER_LEFT } from '../util/events'
 
 @WebSocketGateway()
 export class UserGateway implements OnGatewayDisconnect, OnGatewayConnection {
@@ -43,6 +43,7 @@ export class UserGateway implements OnGatewayDisconnect, OnGatewayConnection {
     handleDisconnect(client: Socket) {
         this.userService.disconnect(client)
     }
+
     handleConnection(client: Socket, ...args: any[]) {
         console.log('connect')
     }

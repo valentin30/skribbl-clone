@@ -13,6 +13,7 @@ import styles from './Colors.module.scss'
 
 interface Props {
     onColorChange: (color: string) => void
+    disabled?: boolean
 }
 
 const colors = [
@@ -52,8 +53,10 @@ export const Colors: FunctionComponent<Props> = props => {
                 <CardContent>
                     <Typography variant='button' color='textSecondary'>
                         <ColorLensOutlined /> Colors
-                        <Tooltip title={open ? 'Close' : 'Open'}>
-                            <IconButton onClick={toggleColorsHandler}>
+                        <Tooltip title={open ? 'Close' : 'Open'} arrow>
+                            <IconButton
+                                onClick={toggleColorsHandler}
+                                disabled={props.disabled}>
                                 <ExpandMore
                                     style={
                                         open

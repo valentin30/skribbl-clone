@@ -1,21 +1,21 @@
-import { SECOND } from 'src/constants'
 import { CurrentPlayerData } from 'src/dto/data/current-player.data'
 import { CurrentRoundData } from 'src/dto/data/current-round.data'
 import { CurrentWordData } from 'src/dto/data/current-word.data'
+import { DrawingData } from 'src/dto/data/drawing.data'
 import { NewUserData } from 'src/dto/data/new-user.data'
+import { TimerData } from 'src/dto/data/timer.data'
 import { UserLeftData } from 'src/dto/data/user-left.data'
-import { CreateRoomPayload } from 'src/dto/payload/create-room.payload'
+import { IRoom } from 'src/interfaces/room.interface'
+import { DEFAULT_DRAWING, LETTER, SECOND } from 'src/util/constants'
 import {
     CURRENT_PLAYER,
     CURRENT_ROUND,
     CURRENT_WORD,
+    DRAWING,
     NEW_USER,
-    OWNER_LEFT,
     TIMER,
     USER_LEFT
-} from 'src/events'
-import { CreateRoomOptions } from 'src/interfaces/create-room-options.interface'
-import { IRoom } from 'src/interfaces/room.interface'
+} from 'src/util/events'
 import { v4 } from 'uuid'
 import { User } from './user.model'
 
@@ -24,9 +24,10 @@ export class Room {
     public players: User[] = []
     public capacity: number = 5
     public currentRound: number = 0
-    public currentPlayer: User | null
+    public currentPlayer: User | null = null
     public seconds: number
     public word: string = ''
+    public drawing: string = DEFAULT_DRAWING
 
     constructor(
         public owner: User,
@@ -50,6 +51,17 @@ export class Room {
             dictionary: this.dictionary
         }
     }
+
+    emitDrawing(drawing: string) {
+        this.drawing = drawing
+
+        const data: DrawingData = new DrawingData(drawing)
+
+        this.players
+            .filter((player: User) => player.id !== this.currentPlayer.id)
+            .forEach((player: User) => player.socket.emit(DRAWING, data))
+    }
+
     addPlayer(user: User): void {
         this.players.push(user)
         this.newPlayerHandler(user)
@@ -58,13 +70,21 @@ export class Room {
     newPlayerHandler(user: User): void {
         const data: NewUserData = new NewUserData(user.toIUser())
 
-        if (this.currentPlayer) {
-            user.socket.emit(CURRENT_PLAYER, new CurrentPlayerData(this.currentPlayer.id))
-        }
+        this.sendJoinDataToUser(user)
 
         this.players.forEach((player: User) => {
             player.socket.emit(NEW_USER, data)
         })
+    }
+
+    sendJoinDataToUser(user: User) {
+        if (this.currentPlayer) {
+            user.socket.emit(CURRENT_PLAYER, new CurrentPlayerData(this.currentPlayer.id))
+        }
+
+        user.socket.emit(DRAWING, new DrawingData(this.drawing))
+        user.socket.emit(CURRENT_WORD, new CurrentWordData(this.getWord(user.id)))
+        user.socket.emit(CURRENT_ROUND, new CurrentRoundData(this.currentRound))
     }
 
     removePlayer(user: User): void {
@@ -113,20 +133,6 @@ export class Room {
         this.startTimer()
     }
 
-    startTimer(): void {
-        const timer: NodeJS.Timeout = setInterval(() => {
-            if (this.seconds === 1) {
-                clearInterval(timer)
-            }
-
-            this.seconds--
-
-            this.players.forEach((player: User) => {
-                player.socket.emit(TIMER, this.seconds)
-            })
-        }, SECOND)
-    }
-
     setNewCurrentPlayer(): void {
         const activeIndex: number = Math.floor(Math.random() * this.players.length)
         this.currentPlayer = this.players[activeIndex]
@@ -140,6 +146,22 @@ export class Room {
         })
     }
 
+    startTimer(): void {
+        const timer: NodeJS.Timeout = setInterval(() => {
+            if (this.seconds === 1) {
+                clearInterval(timer)
+            }
+
+            this.seconds--
+
+            const timerData: TimerData = new TimerData(this.seconds)
+
+            this.players.forEach((player: User) => {
+                player.socket.emit(TIMER, timerData)
+            })
+        }, SECOND)
+    }
+
     getWord(userID: string): string {
         if (!this.currentPlayer) {
             return ''
@@ -149,7 +171,7 @@ export class Room {
             return this.word
         }
 
-        const word: string = this.word.replace(/([A-z])/g, '_')
+        const word: string = this.word.replace(LETTER, '_')
 
         return word
     }

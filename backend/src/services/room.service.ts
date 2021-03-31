@@ -6,10 +6,17 @@ import { JoinRoomData } from 'src/dto/data/join-room.data'
 import { UserLeftData } from 'src/dto/data/user-left.data'
 import { CreateRoomPayload } from 'src/dto/payload/create-room.payload'
 import { JoinRoomPayload } from 'src/dto/payload/join-room.payload'
-import { CURRENT_PLAYER, OWNER_LEFT, USER_LEFT } from 'src/events'
+import { CURRENT_PLAYER, OWNER_LEFT, USER_LEFT } from 'src/util/events'
 import { Room } from 'src/models/room.model'
 import { User } from 'src/models/user.model'
 import { UserService } from './user.service'
+import {
+    ALREADY_IN_GAME,
+    CANT_DRAW,
+    NO_ROOMS,
+    ROOM_FULL,
+    ROOM_NOT_FOUND
+} from 'src/util/error-messages'
 
 @Injectable()
 export class RoomService {
@@ -37,34 +44,26 @@ export class RoomService {
         return room
     }
 
-    joinRoom(user: User, { roomID }: JoinRoomPayload): JoinRoomData {
-        const room: Room | undefined = this.rooms.find((room: Room) => room.id === roomID)
+    getRoomByOwnerID(ownerID: string): Room {
+        const room: Room | undefined = this.rooms.find((room: Room) => room.owner?.id === ownerID)
 
         if (!room) {
-            throw new WsException('This room does not exists')
+            throw new WsException(NO_ROOMS)
         }
 
-        this.isUserInOtherRoom(user.id, room)
+        return room
+    }
 
-        const response: JoinRoomData = new JoinRoomData(room)
+    getRoomByCurrentPlayerID(userID: string): Room {
+        const room: Room | undefined = this.rooms.find(
+            (room: Room) => room.currentPlayer?.id === userID
+        )
 
-        response.word = room.getWord(user.id)
-
-        if (room.players.includes(user)) {
-            if (room.currentPlayer) {
-                user.socket.emit(CURRENT_PLAYER, new CurrentPlayerData(room.currentPlayer.id))
-            }
-
-            return response
+        if (!room) {
+            throw new WsException(CANT_DRAW)
         }
 
-        if (room.capacity === room.players.length) {
-            throw new WsException({ message: 'Sorry, room is already full' })
-        }
-
-        room.addPlayer(user)
-
-        return response
+        return room
     }
 
     create(client: Socket, { rounds, secondsPerRound }: CreateRoomPayload): Room {
@@ -76,6 +75,32 @@ export class RoomService {
         this.rooms.push(room)
 
         return room
+    }
+
+    joinRoom(user: User, { roomID }: JoinRoomPayload): JoinRoomData {
+        const room: Room | undefined = this.rooms.find((room: Room) => room.id === roomID)
+
+        if (!room) {
+            throw new WsException(ROOM_NOT_FOUND)
+        }
+
+        this.isUserInOtherRoom(user.id, room)
+
+        const response: JoinRoomData = new JoinRoomData(room)
+
+        if (room.players.includes(user)) {
+            room.sendJoinDataToUser(user)
+
+            return response
+        }
+
+        if (room.capacity === room.players.length) {
+            throw new WsException(ROOM_FULL)
+        }
+
+        room.addPlayer(user)
+
+        return response
     }
 
     removeUserCascade(user: User): void {
@@ -111,22 +136,11 @@ export class RoomService {
         })
 
         if (playerRooms.length > 1) {
-            throw new WsException('You can not be in more than one room')
+            throw new WsException(ALREADY_IN_GAME)
         }
 
         if (playerRooms.length && !playerRooms.includes(room)) {
-            throw new WsException('You can not be in more than one room')
+            throw new WsException(ALREADY_IN_GAME)
         }
-    }
-
-    getRoomByOwnerID(ownerID: string): Room {
-        const room: Room | undefined = this.rooms.find((room: Room) => room.owner?.id === ownerID)
-        console.log(ownerID)
-
-        if (!room) {
-            throw new WsException('You dont have any rooms')
-        }
-
-        return room
     }
 }

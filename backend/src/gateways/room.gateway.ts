@@ -11,7 +11,7 @@ import { Room } from 'src/models/room.model'
 import { User } from 'src/models/user.model'
 import { RoomService } from 'src/services/room.service'
 import { UserService } from 'src/services/user.service'
-import { CREATE_ROOM, GET_ROOM, JOIN_ROOM } from '../events'
+import { CREATE_ROOM, GET_ROOM, JOIN_ROOM } from '../util/events'
 
 @WebSocketGateway()
 export class RoomGateway {

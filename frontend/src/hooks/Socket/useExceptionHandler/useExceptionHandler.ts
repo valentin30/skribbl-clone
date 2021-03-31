@@ -16,5 +16,9 @@ export const useExceptionHandler = (): void => {
                 }
             })
         })
+
+        return () => {
+            socket.off(EXCEPTION)
+        }
     }, [enqueueSnackbar, closeSnackbar])
 }

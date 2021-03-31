@@ -1,4 +1,4 @@
-import { Button, ButtonProps, CircularProgress } from '@material-ui/core'
+import { Button, ButtonProps } from '@material-ui/core'
 import React, { FunctionComponent } from 'react'
 
 export const SecondaryButton: FunctionComponent<ButtonProps> = ({

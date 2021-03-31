@@ -1,10 +1,10 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { socket } from '../../../Socket/Socket'
 import { CurrentWordData } from '../../../types/dto/data/CurrentWordData'
 import { CURRENT_WORD } from '../../../utils/events'
 import { useRoom } from '../../Room/useRoom'
 
-export const useCurrentWordListener = () => {
+export const useCurrentWordListener = (): void => {
     const {
         methods: { setWord }
     } = useRoom()

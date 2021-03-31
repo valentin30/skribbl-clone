@@ -1,3 +1,3 @@
 export class UserLeftData {
-    constructor(private userID: string) {}
+    constructor(public userID: string) {}
 }

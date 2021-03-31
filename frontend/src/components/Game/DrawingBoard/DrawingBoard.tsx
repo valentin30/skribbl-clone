@@ -1,117 +1,66 @@
-import { Card, CardContent, Tooltip } from '@material-ui/core'
+import { Card, CardContent } from '@material-ui/core'
 import { Delete } from '@material-ui/icons'
-import React, {
-    FunctionComponent,
-    useCallback,
-    useEffect,
-    useMemo,
-    useRef,
-    useState
-} from 'react'
-import Canvas, { CanvasDrawProps } from 'react-canvas-draw'
-import { Colors } from './Colors'
-import { Sizes } from './Sizes'
+import React, { FunctionComponent } from 'react'
+import Canvas from 'react-canvas-draw'
+import { useDrawingBoardConfig } from '../../../hooks/DrawingBoard/useDrawingBoardConfig'
+import { useDrawingBoardSize } from '../../../hooks/DrawingBoard/useDrawingBoardSize'
+import { useDisabled } from '../../../hooks/Room/useDisabled'
 import { ControllButton } from '../../UI/Button/ControllButton'
 import { Brush } from '../../UI/Icon/Brush'
 import { Eraser } from '../../UI/Icon/Eraser'
 import { Undo } from '../../UI/Icon/Undo'
+import { Colors } from './Colors'
 import styles from './DrawingBoard.module.scss'
+import { Sizes } from './Sizes'
 
 interface Props {}
 
-const defaultProps: CanvasDrawProps = {
-    lazyRadius: 0,
-    hideGrid: true
-}
-
-type Selected = 'BRUSH' | 'ERASER'
-
 export const DrawingBoard: FunctionComponent<Props> = props => {
-    const [color, setColor] = useState<string>('')
-    const [radius, setRadius] = useState<number>(4)
-    const [selected, setSelected] = useState<Selected>('BRUSH')
+    const { disabled } = useDisabled()
 
-    const rootRef = useRef<HTMLDivElement | null>(null)
-    const canvasRef = useRef<Canvas | null>(null)
+    const { width, container } = useDrawingBoardSize()
 
-    const [width, setWidth] = useState<number>(
-        rootRef.current?.clientWidth ?? window.innerWidth
-    )
-
-    const brushColor = useMemo<string>(
-        () => (selected === 'ERASER' ? '#FFFFFF' : color),
-        [selected, color]
-    )
-
-    const brushRadius = useMemo<number>(
-        () => (selected === 'ERASER' ? radius * 4 : radius),
-        [selected, radius]
-    )
-
-    const selectBrushHandler = useCallback(() => {
-        if (selected === 'BRUSH') {
-            return
+    const {
+        canvasRef,
+        config,
+        state: { color, radius, selected },
+        methods: {
+            selectColorHandler,
+            selectBrushHandler,
+            selectEraserHandler,
+            selectSizeHandler,
+            undoHandler,
+            clearHandler
         }
-
-        setSelected('BRUSH')
-    }, [selected])
-
-    const selectEraserHandler = useCallback(() => {
-        if (selected === 'ERASER') {
-            return
-        }
-
-        setSelected('ERASER')
-    }, [selected])
-
-    const selectColorHandler = useCallback(
-        (color: string) => {
-            selectBrushHandler()
-            setColor(color)
-        },
-        [selectBrushHandler]
-    )
-
-    const undoHandler = useCallback(() => {
-        canvasRef.current?.undo()
-    }, [])
-
-    const clearHandler = useCallback(() => {
-        canvasRef.current?.clear()
-    }, [])
-
-    useEffect(() => {
-        setWidth(rootRef.current?.clientWidth ?? 0)
-
-        const resizeHandler = () => {
-            setWidth(rootRef.current?.clientWidth ?? 0)
-        }
-
-        window.addEventListener('resize', resizeHandler)
-
-        return () => {
-            window.removeEventListener('resize', resizeHandler)
-        }
-    }, [])
+    } = useDrawingBoardConfig()
 
     return (
-        <Card ref={rootRef} className={styles.root} variant='outlined'>
+        <Card ref={container} className={styles.root} variant='outlined'>
             <CardContent>
-                <Colors onColorChange={selectColorHandler} />
+                <Colors
+                    onColorChange={selectColorHandler}
+                    disabled={disabled}
+                />
                 <div className={styles.Controls}>
                     <div>
-                        <Sizes size={radius} onSizeChange={setRadius} />
+                        <Sizes
+                            size={radius}
+                            onSizeChange={selectSizeHandler}
+                            disabled={disabled}
+                        />
                     </div>
                     <ControllButton
                         onClick={selectBrushHandler}
                         value='BRUSH'
-                        selected={selected === 'BRUSH'}
+                        selected={selected === 'BRUSH' && !disabled}
+                        disabled={disabled}
                         tooltip='Brush'>
                         <Brush color={color} />
                     </ControllButton>
                     <ControllButton
                         onClick={selectEraserHandler}
-                        selected={selected === 'ERASER'}
+                        selected={selected === 'ERASER' && !disabled}
+                        disabled={disabled}
                         value='ERASER'
                         tooltip='Eraser'>
                         <Eraser />
@@ -119,26 +68,20 @@ export const DrawingBoard: FunctionComponent<Props> = props => {
                     <ControllButton
                         value='UNDO'
                         onClick={undoHandler}
+                        disabled={disabled}
                         tooltip='Undo'>
                         <Undo />
                     </ControllButton>
                     <ControllButton
                         value='REMOVE'
                         onClick={clearHandler}
+                        disabled={disabled}
                         tooltip='Remove'>
                         <Delete />
                     </ControllButton>
                 </div>
             </CardContent>
-            <Canvas
-                ref={canvasRef}
-                canvasWidth={width}
-                canvasHeight={550}
-                brushColor={brushColor}
-                catenaryColor={brushColor}
-                brushRadius={brushRadius}
-                {...defaultProps}
-            />
+            <Canvas ref={canvasRef} canvasWidth={width} {...config} />
         </Card>
     )
 }

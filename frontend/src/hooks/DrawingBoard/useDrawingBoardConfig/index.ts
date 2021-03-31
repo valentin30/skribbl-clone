@@ -1,0 +1,1 @@
+export { useDrawingBoardConfig } from './useDrawingBoardConfig'

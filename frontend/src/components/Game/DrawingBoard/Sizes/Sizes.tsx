@@ -12,12 +12,13 @@ import styles from './Sizes.module.scss'
 interface Props {
     size: number
     onSizeChange: (size: number) => void
+    disabled?: boolean
 }
 
 const sizes: number[] = [2, 4, 8, 16, 32]
 
 export const Sizes: FunctionComponent<Props> = props => {
-    const { onSizeChange, size } = props
+    const { onSizeChange, size, disabled } = props
 
     const [open, setOpen] = useState<boolean>(false)
 
@@ -31,8 +32,8 @@ export const Sizes: FunctionComponent<Props> = props => {
                 setOpen(false)
             }}>
             <Card className={styles.root} variant='outlined'>
-                <Tooltip title='Sizes'>
-                    <Button onClick={toggleColorsHandler}>
+                <Tooltip title='Sizes' arrow>
+                    <Button disabled={disabled} onClick={toggleColorsHandler}>
                         <Adjust />
                         <ExpandMore
                             style={

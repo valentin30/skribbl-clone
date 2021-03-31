@@ -5,14 +5,13 @@ import { socket } from '../../../Socket/Socket'
 import { CurrentPlayerData } from '../../../types/dto/data/CurrentPlayerData'
 import { CURRENT_PLAYER } from '../../../utils/events'
 
-export const useCurrentPlayerListener = () => {
+export const useCurrentPlayerListener = (): void => {
     const {
         methods: { setCurrentPlayerID }
     } = useContext<IRoomContext>(RoomContext)
 
     useEffect(() => {
         socket.on(CURRENT_PLAYER, ({ userID }: CurrentPlayerData) => {
-            console.log('CurrentPlayerHook:', userID)
             setCurrentPlayerID(userID)
         })
 

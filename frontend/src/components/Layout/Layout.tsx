@@ -1,4 +1,4 @@
-import { Container, Typography, useMediaQuery } from '@material-ui/core'
+import { Container, Typography } from '@material-ui/core'
 import { Brush } from '@material-ui/icons'
 import React, { FunctionComponent } from 'react'
 import { Link } from 'react-router-dom'
@@ -6,8 +6,6 @@ import { ChildrenProps } from '../../types/props/ChildrenProps'
 import styles from './Layout.module.scss'
 
 export const Layout: FunctionComponent<ChildrenProps> = props => {
-    const matches = useMediaQuery('(max-width:600px)')
-
     return (
         <>
             <div className={styles.root}>

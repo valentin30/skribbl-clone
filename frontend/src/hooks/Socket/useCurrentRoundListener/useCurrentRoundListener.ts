@@ -4,7 +4,7 @@ import { useRoom } from '../../Room/useRoom'
 import { CURRENT_ROUND } from '../../../utils/events'
 import { CurrentRoundData } from '../../../types/dto/data/CurrentRoundData'
 
-export const useCurrentRoundListener = () => {
+export const useCurrentRoundListener = (): void => {
     const {
         methods: { setCurrentRound }
     } = useRoom()

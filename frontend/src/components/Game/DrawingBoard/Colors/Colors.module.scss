@@ -32,6 +32,8 @@
                 opacity: 0.9;
 
                 & svg {
+                    color: rgba(0, 0, 0, 0.54) !important;
+
                     transition: 125ms;
                 }
             }

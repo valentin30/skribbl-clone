@@ -14,7 +14,7 @@ export const ControllButton: FunctionComponent<Props> = ({
     ...rest
 }) => {
     return (
-        <Tooltip title={tooltip}>
+        <Tooltip title={tooltip} arrow>
             <ToggleButton
                 {...rest}
                 className={[styles.root, className].join(' ')}>
