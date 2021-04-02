@@ -25,6 +25,16 @@ export class UserService {
         return user
     }
 
+    removeByID(userID: string): User {
+        const userIndex: number = this.users.findIndex((user: User) => user.id === userID)
+
+        if (userIndex === -1) {
+            throw new WsException(NOT_REGISTERED)
+        }
+
+        return this.users.splice(userIndex, 1)[0]
+    }
+
     register(client: Socket, { color, name }: RegisterPayload): User {
         const user: User = new User(client.id, name, client, color)
 

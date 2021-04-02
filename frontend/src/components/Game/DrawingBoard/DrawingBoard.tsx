@@ -18,7 +18,7 @@ interface Props {}
 export const DrawingBoard: FunctionComponent<Props> = props => {
     const { disabled } = useDisabled()
 
-    const { width, container } = useDrawingBoardSize()
+    const { width, height, container, controller } = useDrawingBoardSize()
 
     const {
         canvasRef,
@@ -36,7 +36,7 @@ export const DrawingBoard: FunctionComponent<Props> = props => {
 
     return (
         <Card ref={container} className={styles.root} variant='outlined'>
-            <CardContent>
+            <CardContent ref={controller}>
                 <Colors
                     onColorChange={selectColorHandler}
                     disabled={disabled}
@@ -81,7 +81,12 @@ export const DrawingBoard: FunctionComponent<Props> = props => {
                     </ControllButton>
                 </div>
             </CardContent>
-            <Canvas ref={canvasRef} canvasWidth={width} {...config} />
+            <Canvas
+                ref={canvasRef}
+                canvasWidth={width}
+                canvasHeight={height}
+                {...config}
+            />
         </Card>
     )
 }

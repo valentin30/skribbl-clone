@@ -2,6 +2,7 @@
     display: grid;
 
     grid-template-columns: 13rem auto 18rem;
+    grid-template-rows: auto 65vh;
     grid-template-areas:
         'word word word'
         'players board chat';

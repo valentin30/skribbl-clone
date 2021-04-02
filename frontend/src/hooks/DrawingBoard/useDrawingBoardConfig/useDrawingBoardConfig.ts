@@ -54,7 +54,6 @@ export const useDrawingBoardConfig = (): Config => {
             lazyRadius: 0,
             hideGrid: true,
             brushColor,
-            canvasHeight: 550,
             catenaryColor: brushColor,
             brushRadius,
             immediateLoading: true,

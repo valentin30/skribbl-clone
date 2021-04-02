@@ -45,7 +45,7 @@ export class RoomService {
     }
 
     getRoomByOwnerID(ownerID: string): Room {
-        const room: Room | undefined = this.rooms.find((room: Room) => room.owner?.id === ownerID)
+        const room: Room | undefined = this.rooms.find((room: Room) => room.isUserOwner(ownerID))
 
         if (!room) {
             throw new WsException(NO_ROOMS)
@@ -55,8 +55,8 @@ export class RoomService {
     }
 
     getRoomByCurrentPlayerID(userID: string): Room {
-        const room: Room | undefined = this.rooms.find(
-            (room: Room) => room.currentPlayer?.id === userID
+        const room: Room | undefined = this.rooms.find((room: Room) =>
+            room.isUserCurrentPalyer(userID)
         )
 
         if (!room) {
@@ -88,7 +88,7 @@ export class RoomService {
 
         const response: JoinRoomData = new JoinRoomData(room)
 
-        if (room.players.includes(user)) {
+        if (room.isUserInRoom(user.id)) {
             room.sendJoinDataToUser(user)
 
             return response

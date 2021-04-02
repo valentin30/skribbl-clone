@@ -18,7 +18,6 @@ import {
 } from 'src/util/events'
 import { v4 } from 'uuid'
 import { User } from './user.model'
-
 export class Room {
     public id: string = v4()
     public players: User[] = []
@@ -58,7 +57,7 @@ export class Room {
         const data: DrawingData = new DrawingData(drawing)
 
         this.players
-            .filter((player: User) => player.id !== this.currentPlayer.id)
+            .filter(({ id }: User) => !this.isUserCurrentPalyer(id))
             .forEach((player: User) => player.socket.emit(DRAWING, data))
     }
 
@@ -75,6 +74,20 @@ export class Room {
         this.players.forEach((player: User) => {
             player.socket.emit(NEW_USER, data)
         })
+    }
+
+    isUserInRoom(userID: string): boolean {
+        const player: User | undefined = this.players.find((player: User) => player.id === userID)
+
+        return Boolean(player)
+    }
+
+    isUserOwner(userID: string): boolean {
+        return this.owner.id === userID
+    }
+
+    isUserCurrentPalyer(userID: string): boolean {
+        return this.currentPlayer.id === userID
     }
 
     sendJoinDataToUser(user: User) {
@@ -167,7 +180,7 @@ export class Room {
             return ''
         }
 
-        if (userID === this.currentPlayer.id) {
+        if (this.isUserCurrentPalyer(userID)) {
             return this.word
         }
 

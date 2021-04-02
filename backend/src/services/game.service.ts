@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common'
 import { WsException } from '@nestjs/websockets'
-import { DrawPayload } from 'src/dto/payload/draw.payload'
 import { Room } from 'src/models/room.model'
 import { RoomService } from './room.service'
 import { UserService } from './user.service'
@@ -29,11 +28,5 @@ export class GameService {
 
     startRound(ownerID: string): void {
         const room: Room = this.roomService.getRoomByOwnerID(ownerID)
-    }
-
-    draw(userID: string, { drawing }: DrawPayload): void {
-        const room: Room = this.roomService.getRoomByCurrentPlayerID(userID)
-
-        room.emitDrawing(drawing)
     }
 }
