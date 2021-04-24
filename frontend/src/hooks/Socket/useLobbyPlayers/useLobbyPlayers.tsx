@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { socket } from '../../../Socket/Socket'
-import { JoinRoomData } from '../../../types/dto/data/JoinRoomData'
 import { NewUserData } from '../../../types/dto/data/NewUserData'
+import { PlayersData } from '../../../types/dto/data/PlayersData'
 import { UserLeftData } from '../../../types/dto/data/UserLeftData'
-import { JoinRoomPayload } from '../../../types/dto/payload/JoinRoomPayload'
+import { PlayersPayload } from '../../../types/dto/payload/PlayersPayload'
 import { User } from '../../../types/User/User'
-import { JOIN_ROOM, NEW_USER, USER_LEFT } from '../../../utils/events'
+import { NEW_USER, PLAYERS, USER_LEFT } from '../../../utils/events'
 
 interface UseLobbyPlayers {
     players: User[]
@@ -15,7 +15,7 @@ export const useLobbyPlayers = (roomID: string): UseLobbyPlayers => {
     const [players, setPlayers] = useState<User[]>([])
 
     useEffect(() => {
-        socket.emit(JOIN_ROOM, new JoinRoomPayload(roomID))
+        socket.emit(PLAYERS, new PlayersPayload(roomID))
     }, [roomID])
 
     useEffect(() => {
@@ -29,12 +29,12 @@ export const useLobbyPlayers = (roomID: string): UseLobbyPlayers => {
     }, [])
 
     useEffect(() => {
-        socket.once(JOIN_ROOM, ({ players }: JoinRoomData) => {
+        socket.once(PLAYERS, ({ players }: PlayersData) => {
             setPlayers((current: User[]) => [...players, ...current])
         })
 
         return () => {
-            socket.off(JOIN_ROOM)
+            socket.off(PLAYERS)
         }
     }, [])
 

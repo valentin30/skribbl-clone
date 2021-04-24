@@ -1,1 +1,1 @@
-export { useDisabled } from './useDisabled'
+export { useDrawingDisabled } from './useDrawingDisabled'

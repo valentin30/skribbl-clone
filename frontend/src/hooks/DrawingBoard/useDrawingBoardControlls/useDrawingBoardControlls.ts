@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import CanvasDraw from 'react-canvas-draw'
 import { socket } from '../../../Socket/Socket'
-import { DrawingData } from '../../../types/dto/data/DrawingData'
 import { DrawingPayload } from '../../../types/dto/payload/DrawingPayload'
 import { DEFAULT_DRAWING } from '../../../utils/constants'
 import { DRAWING } from '../../../utils/events'
@@ -68,16 +67,6 @@ export const useDrawingBoardControlls = (): DrawingBoardControlls => {
     const clearHandler = useCallback(() => {
         socket.emit(DRAWING, new DrawingPayload(DEFAULT_DRAWING))
         canvas?.clear()
-    }, [canvas])
-
-    useEffect(() => {
-        socket.on(DRAWING, ({ drawing }: DrawingData) => {
-            canvas?.loadSaveData(drawing, true)
-        })
-
-        return () => {
-            socket.off(DRAWING)
-        }
     }, [canvas])
 
     return {

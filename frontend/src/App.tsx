@@ -11,6 +11,7 @@ interface Props {}
 
 export const App: FunctionComponent<Props> = props => {
     useExceptionHandler()
+
     const { user } = useUser()
 
     if (!user.id) {

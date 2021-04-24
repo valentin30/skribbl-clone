@@ -1,78 +1,31 @@
-import {
-    Button,
-    Card,
-    CardContent,
-    TextField,
-    Typography
-} from '@material-ui/core'
+import { Button, Card, CardContent, TextField } from '@material-ui/core'
 import { QuestionAnswer as ChatIcon, Send } from '@material-ui/icons'
-import React, {
-    FunctionComponent,
-    useCallback,
-    useEffect,
-    useRef,
-    useState
-} from 'react'
-import { useInput } from '../../../hooks/Form/useInput'
-import { useUser } from '../../../hooks/useUser/useUser'
-import { User } from '../../../types/User/User'
-import { Avatar } from '../../UI/Avatar'
+import React, { FunctionComponent, useEffect, useRef } from 'react'
+import { useChat } from '../../../hooks/Room/useChat/useChat'
+import { useChatDisabled } from '../../../hooks/Room/useDisabled/useChatDisabled'
+import { Message } from '../../../types/Chat/Message'
 import { CardHeader } from '../../UI/CardHeader'
 import styles from './Chat.module.scss'
+import { MessageCard } from './MessageCard'
+import { v4 } from 'uuid'
 
 interface Props {}
 
-interface Message {
-    user: User
-    date: string
-    content: string
-}
-
 export const Chat: FunctionComponent<Props> = props => {
-    const [chat, setChat] = useState<Message[]>([])
-
-    const { user } = useUser()
-    const [content, setContent] = useState<string>('')
-
     const messageRef = useRef<HTMLDivElement | null>(null)
 
-    const messageChangeHandler = useCallback(
-        (event: React.ChangeEvent<HTMLInputElement>) => {
-            setContent(event.target.value)
-        },
-        []
-    )
+    const { disabled } = useChatDisabled()
 
-    const submitMessageHandler = useCallback(
-        (event: any) => {
-            if (event.key && event.key !== 'Enter') {
-                return
-            }
-
-            if (!content) {
-                return
-            }
-
-            const message: Message = {
-                content,
-                date: new Date(Date.now())
-                    .toTimeString()
-                    .split('')
-                    .splice(0, 5)
-                    .join(''),
-                user
-            }
-
-            setChat((chat: Message[]) => [...chat, message])
-            // window.scrollTo({})
-            setContent('')
-        },
-        [user, content]
-    )
+    const {
+        state: { inputValue, messages },
+        methods: { inputValueChangeHandler, submitMessageHandler }
+    } = useChat()
 
     useEffect(() => {
-        messageRef.current?.scrollIntoView()
-    }, [chat])
+        messageRef.current?.scrollIntoView({
+            behavior: 'smooth'
+        })
+    }, [messages])
 
     return (
         <Card className={styles.root} variant='outlined'>
@@ -83,37 +36,21 @@ export const Chat: FunctionComponent<Props> = props => {
                 </CardHeader>
                 <Card className={styles.Chat} variant='outlined'>
                     <CardContent>
-                        {chat.map(({ content, date, user }: Message) => (
-                            <div ref={messageRef} className={styles.Message}>
-                                <Avatar
-                                    color={user.color}
-                                    name={user.name}
-                                    small
-                                />
-                                <div>
-                                    <div>
-                                        <Typography variant='body1'>
-                                            {user.name}
-                                        </Typography>
-                                        <Typography
-                                            variant='caption'
-                                            color='textSecondary'>
-                                            {date}
-                                        </Typography>
-                                    </div>
-                                    <Typography variant='body2'>
-                                        {content}
-                                    </Typography>
-                                </div>
-                            </div>
+                        {messages.map((message: Message) => (
+                            <MessageCard
+                                message={message}
+                                ref={messageRef}
+                                key={v4()}
+                            />
                         ))}
                     </CardContent>
                 </Card>
                 <TextField
                     className={styles.Input}
                     variant='outlined'
-                    onChange={messageChangeHandler}
-                    value={content}
+                    onChange={inputValueChangeHandler}
+                    value={inputValue}
+                    disabled={disabled}
                     onKeyDown={submitMessageHandler}
                     InputProps={{
                         endAdornment: (

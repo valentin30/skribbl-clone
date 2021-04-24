@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { socket } from '../../../Socket/Socket'
 import { CurrentWordData } from '../../../types/dto/data/CurrentWordData'
 import { CURRENT_WORD } from '../../../utils/events'

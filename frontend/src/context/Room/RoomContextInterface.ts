@@ -6,7 +6,7 @@ export interface IRoomContext {
 export interface RoomState {
     currentPlayerID: string
     secondsPerRound: number
-    currentRound: number
+    currentRound: number | null
     rounds: number
     word: string
 }

@@ -1,0 +1,1 @@
+export { WordPick } from './WordPick'

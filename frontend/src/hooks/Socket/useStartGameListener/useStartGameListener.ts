@@ -9,7 +9,7 @@ export const useStartGameListener = (): void => {
 
     useEffect(() => {
         socket.on(START_GAME, ({ roomID }: StartGameData) => {
-            history.push(`/room?id=${roomID}`)
+            history.replace(`/room?id=${roomID}`)
         })
 
         return () => {

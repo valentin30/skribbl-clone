@@ -3,8 +3,7 @@ import { Delete } from '@material-ui/icons'
 import React, { FunctionComponent } from 'react'
 import Canvas from 'react-canvas-draw'
 import { useDrawingBoardConfig } from '../../../hooks/DrawingBoard/useDrawingBoardConfig'
-import { useDrawingBoardSize } from '../../../hooks/DrawingBoard/useDrawingBoardSize'
-import { useDisabled } from '../../../hooks/Room/useDisabled'
+import { useDrawingDisabled } from '../../../hooks/Room/useDisabled'
 import { ControllButton } from '../../UI/Button/ControllButton'
 import { Brush } from '../../UI/Icon/Brush'
 import { Eraser } from '../../UI/Icon/Eraser'
@@ -16,12 +15,10 @@ import { Sizes } from './Sizes'
 interface Props {}
 
 export const DrawingBoard: FunctionComponent<Props> = props => {
-    const { disabled } = useDisabled()
-
-    const { width, height, container, controller } = useDrawingBoardSize()
+    const { disabled } = useDrawingDisabled()
 
     const {
-        canvasRef,
+        refs: { canvasRef, containerRef, controllsRef },
         config,
         state: { color, radius, selected },
         methods: {
@@ -35,8 +32,8 @@ export const DrawingBoard: FunctionComponent<Props> = props => {
     } = useDrawingBoardConfig()
 
     return (
-        <Card ref={container} className={styles.root} variant='outlined'>
-            <CardContent ref={controller}>
+        <Card ref={containerRef} className={styles.root} variant='outlined'>
+            <CardContent ref={controllsRef}>
                 <Colors
                     onColorChange={selectColorHandler}
                     disabled={disabled}
@@ -81,12 +78,7 @@ export const DrawingBoard: FunctionComponent<Props> = props => {
                     </ControllButton>
                 </div>
             </CardContent>
-            <Canvas
-                ref={canvasRef}
-                canvasWidth={width}
-                canvasHeight={height}
-                {...config}
-            />
+            <Canvas ref={canvasRef} {...config} />
         </Card>
     )
 }

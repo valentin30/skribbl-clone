@@ -14,3 +14,12 @@ export const CURRENT_ROUND: string = 'CURRENT_ROUND'
 export const DRAWING: string = 'DRAWING'
 export const CURRENT_PLAYERS: string = 'CURRENT_PLAYERS'
 export const NEW_MESSAGE: string = 'NEW_MESSAGE'
+export const GUESSED: string = 'GUESSED'
+export const PLAYERS: string = 'PLAYERS'
+
+export const ROUND_START: string = 'ROUND_START'
+export const ROUND_END: string = 'ROUND_END'
+export const WORD_PICK: string = 'WORD_PICK'
+export const WORD_SELECT: string = 'WORD_SELECT'
+
+export const GAME_END: string = 'GAME_END'

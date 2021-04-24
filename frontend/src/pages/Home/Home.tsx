@@ -15,11 +15,8 @@ import { RegisterPayload } from '../../types/dto/payload/RegisterPayload'
 import { GET_ROOM, REGISTER } from '../../utils/events'
 import styles from './Home.module.scss'
 
-interface Props {}
-
-export const Home: FunctionComponent<Props> = props => {
+export const Home: FunctionComponent = () => {
     const history = useHistory()
-    const { search } = useLocation()
     const [error, setError] = useState<string>('')
     const {
         user: { name, color },
@@ -39,11 +36,6 @@ export const Home: FunctionComponent<Props> = props => {
             socket.once(REGISTER, ({ userID }: RegisterData) => {
                 setUserID(userID)
 
-                if (search) {
-                    history.push(`/room${search}`)
-                    return
-                }
-
                 socket.once(GET_ROOM, ({ roomID }: GetRoomData) => {
                     history.push(`/room?id=${roomID}`)
                 })
@@ -53,7 +45,7 @@ export const Home: FunctionComponent<Props> = props => {
 
             socket.emit(REGISTER, new RegisterPayload({ name, color }))
         },
-        [name, history, setUserID, color, search]
+        [name, history, setUserID, color]
     )
 
     const changeHandler = useCallback(
@@ -75,9 +67,8 @@ export const Home: FunctionComponent<Props> = props => {
             }
 
             socket.once(REGISTER, ({ userID }: RegisterData) => {
-                setUserID(userID)
-
                 history.push('/create-room')
+                setUserID(userID)
             })
 
             socket.emit(REGISTER, new RegisterPayload({ name, color }))
@@ -104,7 +95,7 @@ export const Home: FunctionComponent<Props> = props => {
             />
             <PrimaryButton type='submit'>Join Room</PrimaryButton>
             <Divider />
-            <SecondaryButton onClick={createPrivateRoomHandler}>
+            <SecondaryButton type='button' onClick={createPrivateRoomHandler}>
                 Create private room
             </SecondaryButton>
         </form>

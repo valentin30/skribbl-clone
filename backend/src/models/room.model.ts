@@ -1,20 +1,29 @@
+import { WsException } from '@nestjs/websockets'
 import { CurrentPlayerData } from 'src/dto/data/current-player.data'
 import { CurrentRoundData } from 'src/dto/data/current-round.data'
 import { CurrentWordData } from 'src/dto/data/current-word.data'
 import { DrawingData } from 'src/dto/data/drawing.data'
+import { GuessedData } from 'src/dto/data/guessed.data'
+import { MessageData } from 'src/dto/data/message.data'
 import { NewUserData } from 'src/dto/data/new-user.data'
+import { PickWordData } from 'src/dto/data/pick-word.data'
 import { TimerData } from 'src/dto/data/timer.data'
 import { UserLeftData } from 'src/dto/data/user-left.data'
 import { IRoom } from 'src/interfaces/room.interface'
 import { DEFAULT_DRAWING, LETTER, SECOND } from 'src/util/constants'
+import { ALREADY_GUESSED, CANT_MESSAGE } from 'src/util/error-messages'
 import {
     CURRENT_PLAYER,
     CURRENT_ROUND,
     CURRENT_WORD,
     DRAWING,
+    GAME_END,
+    GUESSED,
+    NEW_MESSAGE,
     NEW_USER,
     TIMER,
-    USER_LEFT
+    USER_LEFT,
+    WORD_PICK
 } from 'src/util/events'
 import { v4 } from 'uuid'
 import { User } from './user.model'
@@ -24,19 +33,18 @@ export class Room {
     public capacity: number = 5
     public currentRound: number = 0
     public currentPlayer: User | null = null
-    public seconds: number
+    public seconds: number = 0
     public word: string = ''
     public drawing: string = DEFAULT_DRAWING
+    public roundWinners: User[] = []
 
     constructor(
         public owner: User,
         public rounds: number = 3,
-        public secondsPerRounds: number = 120,
+        public secondsPerRounds: number = 30,
         public isPrivate: boolean = false,
         public dictionary: string[] = ['car', 'cat', 'dog', 'tree']
-    ) {
-        this.seconds = secondsPerRounds
-    }
+    ) {}
 
     toIRoom(): IRoom {
         return {
@@ -64,6 +72,12 @@ export class Room {
     addPlayer(user: User): void {
         this.players.push(user)
         this.newPlayerHandler(user)
+
+        if (this.players.length < 3 || this.isPrivate) {
+            return
+        }
+
+        this.startGame()
     }
 
     newPlayerHandler(user: User): void {
@@ -87,11 +101,11 @@ export class Room {
     }
 
     isUserCurrentPalyer(userID: string): boolean {
-        return this.currentPlayer.id === userID
+        return this.currentPlayer?.id === userID
     }
 
     sendJoinDataToUser(user: User) {
-        if (this.currentPlayer) {
+        if (this.currentPlayer?.id) {
             user.socket.emit(CURRENT_PLAYER, new CurrentPlayerData(this.currentPlayer.id))
         }
 
@@ -122,15 +136,11 @@ export class Room {
         }
 
         this.nextRound()
-
-        // start round should be called when current player emits the chosen word
-        this.startRound('doggo')
     }
 
     nextRound(): void {
         this.currentRound++
         this.setNewCurrentPlayer()
-
         const roundData: CurrentRoundData = new CurrentRoundData(this.currentRound)
         const playerData = new CurrentPlayerData(this.currentPlayer.id)
 
@@ -138,12 +148,35 @@ export class Room {
             player.socket.emit(CURRENT_PLAYER, playerData)
             player.socket.emit(CURRENT_ROUND, roundData)
         })
+
+        this.currentPlayer.socket.emit(WORD_PICK, new PickWordData(['dog', 'cat', 'parrot']))
+
+        setTimeout(() => {
+            if (this.word) {
+                return
+            }
+            this.startRound('doggo')
+        }, 10_000)
     }
 
     startRound(word: string): void {
         this.setWord(word)
 
         this.startTimer()
+    }
+
+    endRound(): void {
+        this.setWord('')
+        this.roundWinners = []
+        this.emitDrawing(DEFAULT_DRAWING)
+
+        if (this.rounds === this.currentRound) {
+            this.players.forEach((player: User) => {
+                player.socket.emit(GAME_END)
+            })
+            return
+        }
+        this.nextRound()
     }
 
     setNewCurrentPlayer(): void {
@@ -160,15 +193,16 @@ export class Room {
     }
 
     startTimer(): void {
+        this.seconds = this.secondsPerRounds
         const timer: NodeJS.Timeout = setInterval(() => {
-            if (this.seconds === 1) {
+            if (this.seconds <= 0) {
                 clearInterval(timer)
+                this.endRound()
+                return
             }
 
             this.seconds--
-
             const timerData: TimerData = new TimerData(this.seconds)
-
             this.players.forEach((player: User) => {
                 player.socket.emit(TIMER, timerData)
             })
@@ -187,5 +221,41 @@ export class Room {
         const word: string = this.word.replace(LETTER, '_')
 
         return word
+    }
+
+    newMessage(userID: string, message: string): void {
+        if (this.isUserCurrentPalyer(userID)) {
+            throw new WsException(CANT_MESSAGE)
+        }
+
+        const user = this.players.find((player: User) => userID === player.id)
+
+        if (this.roundWinners.includes(user)) {
+            throw new WsException(ALREADY_GUESSED)
+        }
+
+        if (message.toLocaleLowerCase().trim() === this.word) {
+            this.roundWinners.push(user)
+            this.sendGuessedMessage(user)
+            return
+        }
+
+        this.sendMessage(user, message)
+    }
+
+    sendGuessedMessage(sender: User) {
+        const data: GuessedData = new GuessedData(sender.toIUser())
+
+        this.players.forEach((player: User) => {
+            player.socket.emit(GUESSED, data)
+        })
+    }
+
+    sendMessage(sender: User, message: string) {
+        const data: MessageData = new MessageData(sender.toIUser(), message)
+
+        this.players.forEach((player: User) => {
+            player.socket.emit(NEW_MESSAGE, data)
+        })
     }
 }

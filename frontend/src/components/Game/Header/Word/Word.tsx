@@ -1,13 +1,13 @@
 import { Typography } from '@material-ui/core'
 import React, { FunctionComponent } from 'react'
-import { useDisabled } from '../../../../hooks/Room/useDisabled'
+import { useDrawingDisabled } from '../../../../hooks/Room/useDisabled'
 import { useRoom } from '../../../../hooks/Room/useRoom'
 import styles from './Word.module.scss'
 
 interface Props {}
 
 export const Word: FunctionComponent<Props> = props => {
-    const { disabled } = useDisabled()
+    const { disabled } = useDrawingDisabled()
     const {
         state: { word }
     } = useRoom()

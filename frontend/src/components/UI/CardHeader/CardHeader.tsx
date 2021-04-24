@@ -1,6 +1,5 @@
 import { Card, CardContent, Typography } from '@material-ui/core'
 import React, { FunctionComponent } from 'react'
-import { ChildrenProps } from '../../../types/props/ChildrenProps'
 import styles from './CardHeader.module.scss'
 
 interface Props {

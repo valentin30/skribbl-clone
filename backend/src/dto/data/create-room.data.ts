@@ -1,3 +1,3 @@
-export interface CreateRoomData {
-    roomID: string
+export class CreateRoomData {
+    constructor(public roomID: string) {}
 }

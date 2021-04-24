@@ -1,22 +1,25 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common'
 import { WsException } from '@nestjs/websockets'
 import { Socket } from 'socket.io'
-import { CurrentPlayerData } from 'src/dto/data/current-player.data'
+import { CreateRoomData } from 'src/dto/data/create-room.data'
+import { GetRoomData } from 'src/dto/data/get-room.data'
 import { JoinRoomData } from 'src/dto/data/join-room.data'
-import { UserLeftData } from 'src/dto/data/user-left.data'
+import { PlayersData } from 'src/dto/data/players.data'
 import { CreateRoomPayload } from 'src/dto/payload/create-room.payload'
 import { JoinRoomPayload } from 'src/dto/payload/join-room.payload'
-import { CURRENT_PLAYER, OWNER_LEFT, USER_LEFT } from 'src/util/events'
+import { IUser } from 'src/interfaces/user.interface'
 import { Room } from 'src/models/room.model'
 import { User } from 'src/models/user.model'
-import { UserService } from './user.service'
 import {
     ALREADY_IN_GAME,
     CANT_DRAW,
+    NOT_IN_ROOM,
     NO_ROOMS,
     ROOM_FULL,
     ROOM_NOT_FOUND
 } from 'src/util/error-messages'
+import { OWNER_LEFT } from 'src/util/events'
+import { UserService } from './user.service'
 
 @Injectable()
 export class RoomService {
@@ -27,7 +30,7 @@ export class RoomService {
         private readonly userService: UserService
     ) {}
 
-    getAvailableRoom(userID: string): Room {
+    getAvailableRoom(userID: string): GetRoomData {
         this.isUserInOtherRoom(userID)
 
         const user: User = this.userService.findByID(userID)
@@ -35,13 +38,13 @@ export class RoomService {
             .filter((room: Room) => !room.isPrivate)
             .find(room => room.players.length < room.capacity)
 
-        if (!room) {
-            const newRoom: Room = new Room(user)
-            this.rooms.push(newRoom)
-            return newRoom
+        if (room) {
+            return new GetRoomData(room.id)
         }
 
-        return room
+        const newRoom: Room = new Room(user)
+        this.rooms.push(newRoom)
+        return new GetRoomData(newRoom.id)
     }
 
     getRoomByOwnerID(ownerID: string): Room {
@@ -66,7 +69,29 @@ export class RoomService {
         return room
     }
 
-    create(client: Socket, { rounds, secondsPerRound }: CreateRoomPayload): Room {
+    getRoomByPlayerID(userID: string): Room {
+        const room: Room | undefined = this.rooms.find((room: Room) => room.isUserInRoom(userID))
+
+        if (!room) {
+            throw new WsException(NOT_IN_ROOM)
+        }
+
+        return room
+    }
+
+    getRoomPlayers(roomID: string): PlayersData {
+        const room: Room = this.rooms.find((room: Room) => (room.id = roomID))
+
+        if (!room) {
+            throw new WsException(ROOM_NOT_FOUND)
+        }
+
+        const players: IUser[] = room.players.map((player: User) => player.toIUser())
+
+        return new PlayersData(players)
+    }
+
+    create(client: Socket, { rounds, secondsPerRound }: CreateRoomPayload): CreateRoomData {
         this.isUserInOtherRoom(client.id)
 
         const owner: User = this.userService.findByID(client.id)
@@ -74,7 +99,7 @@ export class RoomService {
 
         this.rooms.push(room)
 
-        return room
+        return new CreateRoomData(room.id)
     }
 
     joinRoom(user: User, { roomID }: JoinRoomPayload): JoinRoomData {
@@ -86,7 +111,7 @@ export class RoomService {
 
         this.isUserInOtherRoom(user.id, room)
 
-        const response: JoinRoomData = new JoinRoomData(room)
+        const response: JoinRoomData = new JoinRoomData(room.secondsPerRounds, room.rounds)
 
         if (room.isUserInRoom(user.id)) {
             room.sendJoinDataToUser(user)
@@ -115,6 +140,11 @@ export class RoomService {
         room.removePlayer(user)
 
         if (room.owner.id !== user.id) {
+            return
+        }
+
+        if (!room.players.length) {
+            this.rooms.splice(index, 1)
             return
         }
 

@@ -1,0 +1,21 @@
+.root {
+    max-width: 450px;
+    width: 100%;
+
+    & > div {
+        padding: 1.5rem !important;
+
+        & > div:nth-child(2) {
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+    }
+}
+
+.Backdrop {
+    z-index: 4000 !important;
+}
+
+.Button {
+    margin-top: 0.75rem !important;
+}

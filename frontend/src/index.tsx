@@ -14,29 +14,27 @@ import { IconButton } from '@material-ui/core'
 import { Close } from '@material-ui/icons'
 
 ReactDOM.render(
-    <React.StrictMode>
-        <BrowserRouter>
-            <ThemeProvider theme={theme}>
-                <UserContextProvider>
-                    <SnackbarProvider
-                        maxSnack={3}
-                        autoHideDuration={4000}
-                        action={key => (
-                            <IconButton
-                                className='snackbar__close-btn'
-                                aria-label='close'
-                                color='inherit'>
-                                <Close />
-                            </IconButton>
-                        )}>
-                        <Layout>
-                            <App />
-                        </Layout>
-                    </SnackbarProvider>
-                </UserContextProvider>
-            </ThemeProvider>
-        </BrowserRouter>
-    </React.StrictMode>,
+    <BrowserRouter>
+        <ThemeProvider theme={theme}>
+            <UserContextProvider>
+                <SnackbarProvider
+                    maxSnack={3}
+                    autoHideDuration={4000}
+                    action={key => (
+                        <IconButton
+                            className='snackbar__close-btn'
+                            aria-label='close'
+                            color='inherit'>
+                            <Close />
+                        </IconButton>
+                    )}>
+                    <Layout>
+                        <App />
+                    </Layout>
+                </SnackbarProvider>
+            </UserContextProvider>
+        </ThemeProvider>
+    </BrowserRouter>,
     document.getElementById('root')
 )
 
